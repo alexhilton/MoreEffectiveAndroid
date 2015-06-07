@@ -1,0 +1,13 @@
+/bin
+/gen
+/.idea
+/*.iml
+/target
+/libs/armeabi
+assets
+/*.class
+/out
+*.apk
+*.*~
+/build
+app/build

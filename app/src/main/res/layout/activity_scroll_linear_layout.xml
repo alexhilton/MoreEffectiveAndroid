@@ -1,0 +1,39 @@
+<net.toughcoder.widget.ScrollLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="hello.toughcoder.net.hello.ScrollLinearLayoutActivity"
+    android:orientation="vertical">
+
+    <TextView android:id="@+id/mercury"
+        android:text= "We are the troops of Great Mercury"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:background="@android:color/darker_gray"
+        android:textColor="@android:color/white"/>
+
+    <TextView android:id="@+id/venus"
+        android:text= "This is the message from Venus"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:background="@android:color/holo_orange_light"
+        android:textColor="@android:color/holo_green_light"/>
+
+    <TextView android:id="@+id/earth"
+        android:text= "The people are on the whole Earth"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:background="@android:color/black"
+        android:textColor="@android:color/holo_green_light"/>
+</net.toughcoder.widget.ScrollLinearLayout>
