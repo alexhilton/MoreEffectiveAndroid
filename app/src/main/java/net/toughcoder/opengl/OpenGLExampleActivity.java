@@ -1,5 +1,6 @@
 package net.toughcoder.opengl;
 
+import android.opengl.GLSurfaceView;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -8,11 +9,26 @@ import android.view.MenuItem;
 import net.toughcoder.effectiveandroid.R;
 
 public class OpenGLExampleActivity extends ActionBarActivity {
+    private GLSurfaceView mGLView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_glexample);
+        mGLView = (GLSurfaceView) findViewById(R.id.glview);
+        mGLView.setRenderer(new ExampleRender());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGLView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mGLView.onPause();
     }
 
     @Override

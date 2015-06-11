@@ -2,6 +2,7 @@ package net.toughcoder.effectiveandroid;
 
 import android.app.Fragment;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,6 +42,27 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent it = new Intent(getApplicationContext(), OpenGLExampleActivity.class);
+                startActivity(it);
+            }
+        });
+
+        View lm = findViewById(R.id.launch_mirror);
+        lm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent();
+//                i.setData(Uri.parse("http://magicmirror.m.taobao.com/magicmirror/index.htm?mode=1&url=http://match-1.play.m.jaeapp.com/index.php&height=0.7&origin=pailitao"));
+                i.setData(Uri.parse("https://magicmirror.m.taobao.com/magicmirror/index.htm?mode=1&url=http://jiuxianphone-1.play.m.jaeapp.com/makeupnew.jsp&height=0.7"));
+                startActivity(i);
+            }
+        });
+
+        View lh = findViewById(R.id.launch_mirror_h5);
+        lh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent();
+                it.setData(Uri.parse("https://magicmirror.m.taobao.com/magicmirror/index.htm?mode=1&url=http://10.2.19.155:82/src/p/beauty/beauty.html&height=0.4313&origin=PhotoSearch"));
                 startActivity(it);
             }
         });
