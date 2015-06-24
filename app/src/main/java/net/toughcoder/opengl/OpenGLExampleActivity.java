@@ -16,10 +16,11 @@ public class OpenGLExampleActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_glexample);
         mGLView = (GLSurfaceView) findViewById(R.id.glview);
+        mGLView.setPreserveEGLContextOnPause(true);
         mGLView.setEGLContextClientVersion(2);
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         GLSurfaceView.Renderer renderer = new JayWayRenderer();
         mGLView.setRenderer(renderer);
+        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
     @Override
