@@ -1,12 +1,12 @@
-package net.toughcoder.opengl;
+package net.toughcoder.opengl2s;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import net.toughcoder.opengl.shape.Square;
-import net.toughcoder.opengl.shape.Triangle;
+import net.toughcoder.opengl2s.shape.Square;
+import net.toughcoder.opengl2s.shape.Triangle;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -30,12 +30,9 @@ public class JayWayRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         mTriangle = new Triangle();
         mSquare = new Square();
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        GLES20.glClearDepthf(1.0f);
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-        GLES20.glDepthFunc(GLES20.GL_LEQUAL);
     }
 
     @Override
@@ -61,11 +58,12 @@ public class JayWayRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
         mSquare.draw(mMVPMatrix);
+
         Matrix.setRotateM(mRotationMatrix, 0, mAngle, 0, 0, 1.0f);
 
         Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
 
-        mTriangle.draw(mMVPMatrix);
+        mTriangle.draw(scratch);
     }
 
     public static int loadShader(int type, String shaderCode){
@@ -115,5 +113,6 @@ public class JayWayRenderer implements GLSurfaceView.Renderer {
      */
     public void setAngle(float angle) {
         mAngle = angle;
+        Log.e("render", "set angle " + mAngle);
     }
 }

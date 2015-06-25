@@ -1,4 +1,4 @@
-package net.toughcoder.opengl;
+package net.toughcoder.opengl2s;
 
 import android.opengl.GLSurfaceView;
 import android.support.v7.app.ActionBarActivity;
@@ -14,13 +14,8 @@ public class OpenGLExampleActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_open_glexample);
-        mGLView = (GLSurfaceView) findViewById(R.id.glview);
-        mGLView.setPreserveEGLContextOnPause(true);
-        mGLView.setEGLContextClientVersion(2);
-        GLSurfaceView.Renderer renderer = new JayWayRenderer();
-        mGLView.setRenderer(renderer);
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mGLView = new MyGLSurfaceView(this);
+        setContentView(mGLView);
     }
 
     @Override

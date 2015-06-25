@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.toughcoder.opengl.shape;
+package net.toughcoder.opengl2s.shape;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -23,7 +23,7 @@ import java.nio.ShortBuffer;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import net.toughcoder.opengl.JayWayRenderer;
+import net.toughcoder.opengl2s.JayWayRenderer;
 
 /**
  * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.

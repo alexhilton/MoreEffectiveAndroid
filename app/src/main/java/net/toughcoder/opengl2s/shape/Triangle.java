@@ -1,9 +1,9 @@
-package net.toughcoder.opengl.shape;
+package net.toughcoder.opengl2s.shape;
 
 import android.opengl.GLES20;
 import android.util.Log;
 
-import net.toughcoder.opengl.JayWayRenderer;
+import net.toughcoder.opengl2s.JayWayRenderer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -88,7 +88,6 @@ public class Triangle {
 
         // creates OpenGL ES program executables
         GLES20.glLinkProgram(mProgram);
-        Log.e(TAG, " " + GLES20.glGetProgramInfoLog(mProgram));
     }
 
     public void draw(float[] mvpMatrix) {
@@ -123,5 +122,6 @@ public class Triangle {
 
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(mPositionHandle);
+        GLES20.glFinish();
     }
 }

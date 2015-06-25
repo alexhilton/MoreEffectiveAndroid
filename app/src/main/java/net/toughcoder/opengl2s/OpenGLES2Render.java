@@ -1,4 +1,4 @@
-package net.toughcoder.opengl;
+package net.toughcoder.opengl2s;
 
 import android.opengl.GLSurfaceView;
 import android.util.Log;

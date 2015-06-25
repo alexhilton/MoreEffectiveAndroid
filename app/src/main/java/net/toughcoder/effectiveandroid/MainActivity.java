@@ -10,8 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import net.toughcoder.effectiveandroid.R;
-import net.toughcoder.opengl.OpenGLExampleActivity;
+import net.toughcoder.opengl2s.OpenGLExampleActivity;
 
 
 public class MainActivity extends ActionBarActivity {
