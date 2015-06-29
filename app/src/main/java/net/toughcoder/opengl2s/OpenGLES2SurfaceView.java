@@ -19,6 +19,7 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 
+import net.toughcoder.oaqs.AirHockeyRenderer;
 import net.toughcoder.opengl2s.JayWayRenderer;
 
 /**
@@ -38,7 +39,8 @@ public class OpenGLES2SurfaceView extends GLSurfaceView {
         // Set the Renderer for drawing on the GLSurfaceView
 //        mRenderer = new JayWayRenderer();
         mRenderer = new OpenGLES2Render();
-        setRenderer(new JayWayRenderer());
+//        setRenderer(new JayWayRenderer());
+        setRenderer(new AirHockeyRenderer(context));
 
         // Render the view only when there is a change in the drawing data
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
