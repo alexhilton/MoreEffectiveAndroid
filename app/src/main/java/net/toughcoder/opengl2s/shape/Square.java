@@ -24,6 +24,8 @@ import android.opengl.GLES20;
 import android.util.Log;
 
 import net.toughcoder.opengl2s.JayWayRenderer;
+import net.toughcoder.opengl2s.OpenGLES2Render;
+import net.toughcoder.opengl2s.Utils;
 
 /**
  * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.
@@ -94,21 +96,21 @@ public class Square {
         drawListBuffer.position(0);
 
         // prepare shaders and OpenGL program
-        int vertexShader = JayWayRenderer.loadShader(
+        int vertexShader = Utils.loadShader(
                 GLES20.GL_VERTEX_SHADER,
                 vertexShaderCode);
-        JayWayRenderer.checkGlError("square vertext shader");
-        int fragmentShader = JayWayRenderer.loadShader(
+        Utils.checkGlError("square vertext shader");
+        int fragmentShader = Utils.loadShader(
                 GLES20.GL_FRAGMENT_SHADER,
                 fragmentShaderCode);
-        JayWayRenderer.checkGlError("square fragment shader");
+        Utils.checkGlError("square fragment shader");
 
         mProgram = GLES20.glCreateProgram();             // create empty OpenGL Program
         GLES20.glAttachShader(mProgram, vertexShader);   // add the vertex shader to program
         GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
         GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
         Log.e(TAG, "program " + GLES20.glGetProgramInfoLog(mProgram));
-        JayWayRenderer.checkGlError("link program");
+        Utils.checkGlError("link program");
     }
 
     /**
@@ -141,11 +143,11 @@ public class Square {
 
         // get handle to shape's transformation matrix
         mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
-        JayWayRenderer.checkGlError("glGetUniformLocation");
+        Utils.checkGlError("glGetUniformLocation");
 
         // Apply the projection and view transformation
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
-        JayWayRenderer.checkGlError("glUniformMatrix4fv");
+        Utils.checkGlError("glUniformMatrix4fv");
 
         // Draw the square
         GLES20.glDrawElements(

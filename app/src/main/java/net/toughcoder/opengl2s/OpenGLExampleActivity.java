@@ -14,7 +14,7 @@ public class OpenGLExampleActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mGLView = new MyGLSurfaceView(this);
+        mGLView = new OpenGLES2SurfaceView(this);
         setContentView(mGLView);
     }
 

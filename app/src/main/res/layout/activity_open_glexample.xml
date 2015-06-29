@@ -4,7 +4,7 @@
                 android:layout_height="match_parent"
                 tools:context="net.toughcoder.opengl2s.OpenGLExampleActivity">
 
-    <net.toughcoder.opengl2s.MyGLSurfaceView
+    <net.toughcoder.opengl2s.OpenGLES2SurfaceView
         android:id="@+id/glview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

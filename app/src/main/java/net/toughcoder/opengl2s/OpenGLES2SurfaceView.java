@@ -26,18 +26,19 @@ import net.toughcoder.opengl2s.JayWayRenderer;
  * This view can also be used to capture touch events, such as a user
  * interacting with drawn objects.
  */
-public class MyGLSurfaceView extends GLSurfaceView {
+public class OpenGLES2SurfaceView extends GLSurfaceView {
 
-    private final JayWayRenderer mRenderer;
+    private final OpenGLES2Render mRenderer;
 
-    public MyGLSurfaceView(Context context) {
+    public OpenGLES2SurfaceView(Context context) {
         super(context);
 
         // Create an OpenGL ES 2.0 context.
         setEGLContextClientVersion(2);
         // Set the Renderer for drawing on the GLSurfaceView
-        mRenderer = new JayWayRenderer();
-        setRenderer(mRenderer);
+//        mRenderer = new JayWayRenderer();
+        mRenderer = new OpenGLES2Render();
+        setRenderer(new JayWayRenderer());
 
         // Render the view only when there is a change in the drawing data
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);

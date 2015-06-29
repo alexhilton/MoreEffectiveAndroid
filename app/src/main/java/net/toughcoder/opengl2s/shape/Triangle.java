@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 import android.util.Log;
 
 import net.toughcoder.opengl2s.JayWayRenderer;
+import net.toughcoder.opengl2s.OpenGLES2Render;
+import net.toughcoder.opengl2s.Utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -72,9 +74,9 @@ public class Triangle {
         vertexBuffer.position(0);
 
         // The Shader
-        int vertexShader = JayWayRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
+        int vertexShader = Utils.loadShader(GLES20.GL_VERTEX_SHADER,
                 vertexShaderCode);
-        int fragmentShader = JayWayRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER,
+        int fragmentShader = Utils.loadShader(GLES20.GL_FRAGMENT_SHADER,
                 fragmentShaderCode);
 
         // create empty OpenGL ES Program
@@ -112,10 +114,10 @@ public class Triangle {
         GLES20.glUniform4fv(mColorHandle, 1, color, 0);
 
         mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
-        JayWayRenderer.checkGlError("glGetUniformLocation");
+        Utils.checkGlError("glGetUniformLocation");
 
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
-        JayWayRenderer.checkGlError("glUniformMatrix4fv");
+        Utils.checkGlError("glUniformMatrix4fv");
 
         // Draw the triangle
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
