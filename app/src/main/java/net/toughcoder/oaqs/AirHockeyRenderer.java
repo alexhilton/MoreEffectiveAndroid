@@ -27,6 +27,7 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer {
     private static final String U_MATRIX = "u_Matrix";
 
     private final float[] projectionMatrix = new float[16];
+    private final float[] modelMatrix = new float[16];
     private int uMatrixLocation;
     private int aPositionLocation;
     private int aColorLocation;
@@ -40,20 +41,11 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer {
             -.5f, -.8f, .7f, .7f, .7f,
 
             // line
-            -.8f, 0f, 1.f, 0f, 0f,
-            .8f, 0f, 0f, 1f, 0.f, 0.f,
+            -.5f, 0f, 1.f, 0f, 0f,
+            .5f, 0f, 0f, 1f, 0.f, 0.f,
             // mallets
             0f, -.4f, .7f, .7f, 0f,
             0f, .4f, 0f, .7f, .7f,
-
-            // Puck
-            0f, 0f, .9f, 0, .7f,
-
-            // borders
-            -.8f, -.8f, .7f, .2f, .5f,
-            .8f, -.8f, .3f, .7f, .3f,
-            .8f, .8f, .8f, .4f, .2f,
-            -.8f, .8f, .8f, .2f, .5f,
     };
 
     private FloatBuffer vertexData;
@@ -101,14 +93,14 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
-        final float ratio = width > height ?
-                (float) width / (float) height :
-                (float) height / (float) width;
-        if (width > height) {
-            Matrix.orthoM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, -1f, 1f);
-        } else {
-            Matrix.orthoM(projectionMatrix, 0, -1f, 1f, -ratio, ratio, -1f, 1f);
-        }
+
+        MatrixHelper.perspectiveM(projectionMatrix, 45, (float) width / (float) height, 1f, 10f);
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, -2.5f);
+        Matrix.rotateM(modelMatrix, 0, -60f, 1.f, 0f, 0f);
+        final float[] tmp = new float[16];
+        Matrix.multiplyMM(tmp, 0, projectionMatrix, 0, modelMatrix, 0);
+        System.arraycopy(tmp, 0, projectionMatrix, 0, tmp.length);
     }
 
     @Override
