@@ -117,10 +117,6 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer {
 
         GLES20.glDrawArrays(GLES20.GL_POINTS, 9, 1);
 
-        GLES20.glDrawArrays(GLES20.GL_POINTS, 10, 1);
-
-        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 11, 4);
-
         GLES20.glFinish();
     }
 }
