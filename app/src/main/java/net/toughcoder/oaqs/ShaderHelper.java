@@ -13,7 +13,7 @@ public class ShaderHelper {
         return compileShader(GLES20.GL_VERTEX_SHADER, code);
     }
 
-    public static int compibleFragmentShader(String code) {
+    public static int compileFragmentShader(String code) {
         return compileShader(GLES20.GL_FRAGMENT_SHADER, code);
     }
 
@@ -60,5 +60,15 @@ public class ShaderHelper {
         GLES20.glGetProgramiv(prog, GLES20.GL_VALIDATE_STATUS, status, 0);
         Log.e(TAG, "validate progra " + GLES20.glGetProgramInfoLog(prog));
         return status[0] != 0;
+    }
+
+    public static int buildProgram(String vsh, String fsh) {
+        int program;
+        int vertexShader = compileVertexShader(vsh);
+        int fragmentShader = compileFragmentShader(fsh);
+
+        program = linkProgram(vertexShader, fragmentShader);
+        validateProgram(program);
+        return program;
     }
 }
