@@ -7,6 +7,7 @@ import android.opengl.GLES20;
  * Created by alexhilton on 15/7/1.
  */
 public class ShaderProgram {
+    public static final String U_COLOR = "u_Color";
     public static final String A_COLOR = "a_Color";
     public static final String A_POSITION = "a_Position";
     public static final String U_MATRIX = "u_Matrix";
