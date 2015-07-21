@@ -15,4 +15,8 @@ public class Point {
     public Point translateY(float delta) {
         return new Point(x, y + delta, z);
     }
+
+    public Point translate(Geometry.Vector vector) {
+        return new Point(x + vector.x, y + vector.y, z + vector.z);
+    }
 }

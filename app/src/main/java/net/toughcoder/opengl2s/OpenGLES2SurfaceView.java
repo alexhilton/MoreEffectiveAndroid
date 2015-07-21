@@ -29,7 +29,8 @@ import net.toughcoder.opengl2s.JayWayRenderer;
  */
 public class OpenGLES2SurfaceView extends GLSurfaceView {
 
-    private final OpenGLES2Render mRenderer;
+//    private final OpenGLES2Render mRenderer;
+    private final AirHockeyRenderer mRenderer;
 
     public OpenGLES2SurfaceView(Context context) {
         super(context);
@@ -38,51 +39,35 @@ public class OpenGLES2SurfaceView extends GLSurfaceView {
         setEGLContextClientVersion(2);
         // Set the Renderer for drawing on the GLSurfaceView
 //        mRenderer = new JayWayRenderer();
-        mRenderer = new OpenGLES2Render();
+//        mRenderer = new OpenGLES2Render();
 //        setRenderer(new JayWayRenderer());
-        setRenderer(new AirHockeyRenderer(context));
+        mRenderer = new AirHockeyRenderer(context);
+        setRenderer(mRenderer);
 
         // Render the view only when there is a change in the drawing data
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 
-    private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
-    private float mPreviousX;
-    private float mPreviousY;
 
     @Override
-    public boolean onTouchEvent(MotionEvent e) {
-        // MotionEvent reports input details from the touch screen
-        // and other input controls. In this case, you are only
-        // interested in events where the touch position changed.
-
-        float x = e.getX();
-        float y = e.getY();
-
-        switch (e.getAction()) {
-            case MotionEvent.ACTION_MOVE:
-
-                float dx = x - mPreviousX;
-                float dy = y - mPreviousY;
-
-                // reverse direction of rotation above the mid-line
-                if (y > getHeight() / 2) {
-                    dx = dx * -1 ;
+    public boolean onTouchEvent(MotionEvent event) {
+        final float normalizedX = (event.getX() / (float) getWidth()) * 2 - 1;
+        final float normalizedY = -((event.getY() / (float) getHeight()) * 2 -1);
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    mRenderer.handleTouchPress(normalizedX, normalizedY);
                 }
-
-                // reverse direction of rotation to left of the mid-line
-                if (x < getWidth() / 2) {
-                    dy = dy * -1 ;
+            });
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    mRenderer.handleTouchDrag(normalizedX, normalizedY);
                 }
-
-                mRenderer.setAngle(
-                        mRenderer.getAngle() +
-                        ((dx + dy) * TOUCH_SCALE_FACTOR));  // = 180.0f / 320
-                requestRender();
+            });
         }
-
-        mPreviousX = x;
-        mPreviousY = y;
         return true;
     }
 

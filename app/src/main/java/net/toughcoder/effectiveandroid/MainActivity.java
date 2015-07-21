@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
 
 
@@ -36,6 +37,15 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        View drawableLabel = findViewById(R.id.drawable_label);
+        drawableLabel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(getApplicationContext(), DrawableLabelActivity.class);
+                startActivity(it);
+            }
+        });
+
         View opengl = findViewById(R.id.opengl);
         opengl.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,8 +60,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent();
-//                i.setData(Uri.parse("http://magicmirror.m.taobao.com/magicmirror/index.htm?mode=1&url=http://match-1.play.m.jaeapp.com/index.php&height=0.7&origin=pailitao"));
-                i.setData(Uri.parse("https://magicmirror.m.taobao.com/magicmirror/index.htm?mode=1&url=http://jiuxianphone-1.play.m.jaeapp.com/makeupnew.jsp&height=0.7"));
+                i.setClass(getApplicationContext(), StarActivity.class);
                 startActivity(i);
             }
         });

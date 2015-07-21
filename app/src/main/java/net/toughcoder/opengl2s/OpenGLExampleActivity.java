@@ -5,8 +5,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 
 import net.toughcoder.effectiveandroid.R;
+import net.toughcoder.oaqs.AirHockeyRenderer;
 
 public class OpenGLExampleActivity extends ActionBarActivity {
     private GLSurfaceView mGLView;
@@ -14,7 +17,38 @@ public class OpenGLExampleActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mGLView = new OpenGLES2SurfaceView(this);
+//        mGLView = new OpenGLES2SurfaceView(this);
+//        mGLView = new GLSurfaceView(this);
+//        final AirHockeyRenderer render = new AirHockeyRenderer(this);
+//        mGLView.setEGLContextClientVersion(2);
+//        mGLView.setRenderer(render);
+//        mGLView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                final float normalizedX = (event.getX() / (float) v.getWidth()) * 2 - 1;
+//                final float normalizedY = -((event.getY() / (float) v.getHeight()) * 2 -1);
+//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//                    mGLView.queueEvent(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            render.handleTouchPress(normalizedX, normalizedY);
+//                        }
+//                    });
+//                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+//                    mGLView.queueEvent(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            render.handleTouchDrag(normalizedX, normalizedY);
+//                        }
+//                    });
+//                }
+//                return true;
+//            }
+//        });
+        mGLView = new GLSurfaceView(this);
+        StarRenderer renderer = new StarRenderer(this);
+        mGLView.setEGLContextClientVersion(2);
+        mGLView.setRenderer(renderer);
         setContentView(mGLView);
     }
 

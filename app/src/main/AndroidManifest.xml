@@ -35,6 +35,10 @@
             android:name="net.toughcoder.opengl2s.OpenGLExampleActivity"
             android:label="@string/title_activity_open_glexample" >
         </activity>
+        <activity android:name="net.toughcoder.opengl1s.StarActivity"
+            android:label="Star Activity">
+
+        </activity>
     </application>
 
 </manifest>

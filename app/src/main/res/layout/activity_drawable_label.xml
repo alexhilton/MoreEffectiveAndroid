@@ -6,7 +6,8 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="hello.toughcoder.net.hello.DrawableLabelActivity">
 
-    <TextView android:text="Text along with Image\nsecond\nthird\nforth\nfifth" android:layout_width="400dip"
+    <TextView android:id="@+id/label"
+        android:text="Text along with Image\nsecond\nthird\nforth\nfifth" android:layout_width="400dip"
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/ic_launcher"
         android:drawableLeft="@drawable/ic_launcher"
@@ -16,5 +17,22 @@
         android:paddingLeft="10dip"
         android:gravity="center"
         android:drawablePadding="5dip"/>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/label"
+            android:src="@drawable/circle"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="10dip"
+            android:layout_below="@id/label"
+            android:src="@drawable/dot"/>
+    </FrameLayout>
 
 </RelativeLayout>
