@@ -15,6 +15,7 @@ import net.toughcoder.oaqs.ShaderHelper;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -28,17 +29,30 @@ public class StarRenderer implements GLSurfaceView.Renderer {
             "attribute vec4 inputTextureCoords;\n" +
             "uniform mat4 aMatrix;\n" +
             "varying vec2 textureCoords;\n" +
+            "varying vec4 vColor;\n" +
+            "attribute vec4 aColor;\n" +
+            "uniform vec3 uNormal;\n" +
+            "attribute vec3 aLight;\n" +
             "void main() {\n" +
             "  gl_Position = aMatrix * position;\n" +
             "  textureCoords = inputTextureCoords.xy;\n" +
+            "  vec3 modelVertex = vec3(aMatrix * position);\n" +
+            "  vec3 normal = vec3(aMatrix * vec4(uNormal, 0.0));\n" +
+            "  float distance = length(aLight - modelVertex);\n" +
+            "  vec3 lightVector = normalize(aLight - modelVertex);\n" +
+            "  float diffuse = max(dot(normal, lightVector), 0.1);\n" +
+            "  diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));\n" +
+            "  vColor = aColor * diffuse;\n" +
             "}";
     private static final String FRAGMENT_SHADER =
             "varying highp vec2 textureCoords;\n" +
             "uniform sampler2D uTexture;\n" +
+            "varying vec4 vColor;\n" +
             "void main() {\n" +
-            "  gl_FragColor = texture2D(uTexture, textureCoords);\n" +
+            "  gl_FragColor = texture2D(uTexture, textureCoords) * vColor;\n" +
+            "  gl_FragColor.rgb *= vColor.a;\n" +
             "}";
-    private float width = 0.04f;
+    private float width = 0.03f;
     private float[] edges = new float[] {
             -width, -width,
             width, -width,
@@ -53,15 +67,26 @@ public class StarRenderer implements GLSurfaceView.Renderer {
             1f, 1f,
     };
 
+    private float[] colors = new float[] {
+            1f, 0f, 0f, 1f,
+            0.5f, 0.5f, 0.5f, 1f,
+            0f, 1f, 0f, 1f,
+            0f, 0f, 1f, 1f,
+    };
+
     private float[] modelMatrix = new float[16];
     private FloatBuffer mEdgeBuffer;
     private FloatBuffer mCoordBuffer;
+    private FloatBuffer mColorBuffer;
 
     private int mGLProgram;
     private int mAttribPosition;
     private int mAttribTextureCoords;
     private int mAttribMatrix;
     private int mUniformTexture;
+    private int mAttribColor;
+    private int mAttribLight; // light position
+    private int mUniformNormal; // normal of the plane
     private int mTextureId = -1;
 
     private Bitmap bitmap;
@@ -75,6 +100,7 @@ public class StarRenderer implements GLSurfaceView.Renderer {
     private float[] y;
     private float[] z;
     private int count = 50;
+    private Random random;
 
     public StarRenderer(Context ctx) {
         mContext = ctx;
@@ -84,11 +110,15 @@ public class StarRenderer implements GLSurfaceView.Renderer {
         x = new float[count];
         y = new float[count];
         z = new float[count];
+        random = new Random();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glClearColor(0f, 0f, 0f, 1f);
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+
         mEdgeBuffer = ByteBuffer.allocateDirect(edges.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
@@ -100,6 +130,12 @@ public class StarRenderer implements GLSurfaceView.Renderer {
                 .asFloatBuffer();
         mCoordBuffer.put(coords);
         mCoordBuffer.position(0);
+
+        mColorBuffer = ByteBuffer.allocateDirect(colors.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        mColorBuffer.put(colors);
+        mColorBuffer.position(0);
 
         int vsh = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
         GLES20.glShaderSource(vsh, VERTEX_SHADER);
@@ -124,7 +160,10 @@ public class StarRenderer implements GLSurfaceView.Renderer {
         mAttribTextureCoords = GLES20.glGetAttribLocation(mGLProgram, "inputTextureCoords");
         mUniformTexture = GLES20.glGetUniformLocation(mGLProgram, "uTexture");
         mAttribMatrix = GLES20.glGetUniformLocation(mGLProgram, "aMatrix");
-//        mUniformColor = GLES20.glGetUniformLocation(mGLProgram, "uColor");
+        mAttribColor = GLES20.glGetAttribLocation(mGLProgram, "aColor");
+        mAttribLight = GLES20.glGetAttribLocation(mGLProgram, "aLight");
+        mUniformNormal = GLES20.glGetUniformLocation(mGLProgram, "uNormal");
+
         bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.star4);
 
         genDist();
@@ -153,7 +192,12 @@ public class StarRenderer implements GLSurfaceView.Renderer {
             GLES20.glVertexAttribPointer(mAttribTextureCoords, 2, GLES20.GL_FLOAT, false, 0, mCoordBuffer);
             GLES20.glEnableVertexAttribArray(mAttribTextureCoords);
 
+            GLES20.glVertexAttrib4f(mAttribColor, .91f, .97f, .91f, 1f);
+
             GLES20.glUniformMatrix4fv(mAttribMatrix, 1, false, modelMatrix, 0);
+
+            GLES20.glVertexAttrib3f(mAttribLight, x[i], y[i], random.nextFloat());
+            GLES20.glUniform3f(mUniformNormal, 0f, 0f, 1f);
 
             if (mTextureId == -1) {
                 mTextureId = loadTexture();
@@ -190,12 +234,11 @@ public class StarRenderer implements GLSurfaceView.Renderer {
     private void genDist() {
         for (int i = 0; i < count; i++) {
             sign *= -1;
-            x[i] = (float) Math.random();
+            x[i] = random.nextFloat();
             x[i] *= sign;
-            y[i] = (float) Math.random();
+            y[i] = random.nextFloat();
             y[i] *= sign;
-            z[i] = (float) Math.random();
-            z[i] *= -1;
+            z[i] = 0f;
         }
     }
 }

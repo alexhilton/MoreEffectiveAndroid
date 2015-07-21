@@ -1,22 +1,26 @@
 package net.toughcoder.opengl2s;
 
 import android.opengl.GLSurfaceView;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import net.toughcoder.effectiveandroid.R;
 import net.toughcoder.oaqs.AirHockeyRenderer;
 
 public class OpenGLExampleActivity extends ActionBarActivity {
     private GLSurfaceView mGLView;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mHandler = new Handler();
 //        mGLView = new OpenGLES2SurfaceView(this);
 //        mGLView = new GLSurfaceView(this);
 //        final AirHockeyRenderer render = new AirHockeyRenderer(this);
@@ -46,12 +50,26 @@ public class OpenGLExampleActivity extends ActionBarActivity {
 //            }
 //        });
         mGLView = new GLSurfaceView(this);
+        int width = getResources().getDisplayMetrics().widthPixels;
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(width, width);
+        mGLView.setLayoutParams(params);
         StarRenderer renderer = new StarRenderer(this);
         mGLView.setEGLContextClientVersion(2);
         mGLView.setRenderer(renderer);
+        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         setContentView(mGLView);
+        refresh();
     }
 
+    private void refresh() {
+        mGLView.requestRender();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                refresh();
+            }
+        }, 200);
+    }
     @Override
     protected void onResume() {
         super.onResume();
@@ -62,6 +80,12 @@ public class OpenGLExampleActivity extends ActionBarActivity {
     protected void onPause() {
         super.onPause();
         mGLView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mHandler.removeCallbacks(null);
     }
 
     @Override
