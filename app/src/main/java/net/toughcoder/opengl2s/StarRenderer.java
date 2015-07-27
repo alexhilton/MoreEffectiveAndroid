@@ -182,7 +182,7 @@ public class StarRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         GLES20.glUseProgram(mGLProgram);
-
+        genDist();
         for (int i = 0; i < count; i++) {
             Matrix.setIdentityM(modelMatrix, 0);
             Matrix.translateM(modelMatrix, 0, x[i], y[i], z[i]);

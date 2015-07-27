@@ -68,8 +68,9 @@ public class OpenGLExampleActivity extends ActionBarActivity {
             public void run() {
                 refresh();
             }
-        }, 200);
+        }, 300);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
