@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:shareWeixin="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/friend" android:title="Friends" shareWeixin:showAsAction="never" />
+    <item android:id="@+id/stream" android:title="Stream" shareWeixin:showAsAction="never" />
+    <item android:id="@+id/more" android:title="More" shareWeixin:showAsAction="never" />
+</menu>

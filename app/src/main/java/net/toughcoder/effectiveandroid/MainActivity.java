@@ -69,8 +69,9 @@ public class MainActivity extends ActionBarActivity {
         lh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent it = new Intent();
-                it.setData(Uri.parse("https://magicmirror.m.taobao.com/magicmirror/index.htm?mode=1&url=http://10.2.19.155:82/src/p/beauty/beauty.html&height=0.4313&origin=PhotoSearch"));
+                Intent it = new Intent(Intent.ACTION_VIEW);
+//                it.setClass(getApplicationContext(), ShareWeixinActivity.class);
+                it.setData(Uri.parse("http://h5.m.taobao.com/tusou/album/index.html?pssource=effective&search=1"));
                 startActivity(it);
             }
         });

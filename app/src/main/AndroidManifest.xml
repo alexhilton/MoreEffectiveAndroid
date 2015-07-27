@@ -37,8 +37,13 @@
         </activity>
         <activity android:name="net.toughcoder.opengl1s.StarActivity"
             android:label="Star Activity">
-
         </activity>
+        <activity android:name=".ShareWeixinActivity"
+                  android:label="Share Weixin"
+                  android:theme="@android:style/Theme.Holo"
+            />
     </application>
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 </manifest>
