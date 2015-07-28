@@ -54,17 +54,17 @@ public class StarRenderer implements GLSurfaceView.Renderer {
             "}";
     private float width = 0.03f;
     private float[] edges = new float[] {
-            -width, width,
             -width, -width,
-            width, width,
             width, -width,
+            -width, width,
+            width, width,
     };
 
     private float[] coords = new float[] {
-            0f, 0f,
-            1f, 0f,
             0f, 1f,
             1f, 1f,
+            0f, 0f,
+            1f, 0f,
     };
 
     private float[] colors = new float[] {
@@ -182,11 +182,11 @@ public class StarRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         GLES20.glUseProgram(mGLProgram);
-        genDist();
+//        genDist();
         for (int i = 0; i < count; i++) {
             Matrix.setIdentityM(modelMatrix, 0);
             Matrix.translateM(modelMatrix, 0, x[i], y[i], z[i]);
-            Matrix.rotateM(modelMatrix, 0, angle, 0f, 0f, 1.0f);
+//            Matrix.rotateM(modelMatrix, 0, angle, 0f, 0f, 1.0f);
 
             mEdgeBuffer.position(0);
             GLES20.glVertexAttribPointer(mAttribPosition, 2, GLES20.GL_FLOAT, false, 0, mEdgeBuffer);
