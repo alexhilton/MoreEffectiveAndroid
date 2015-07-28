@@ -59,7 +59,7 @@ public class OpenGLExampleActivity extends ActionBarActivity {
         mGLView.setRenderer(renderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         setContentView(mGLView);
-//        refresh();
+        refresh();
     }
 
     private void refresh() {

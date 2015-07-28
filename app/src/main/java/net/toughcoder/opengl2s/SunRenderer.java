@@ -7,6 +7,7 @@ import android.util.FloatMath;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -30,6 +31,8 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             "}";
 
     private Circle mCircle;
+    private Rays mRay;
+
     private int mProgram;
 
     private int mAttribPosition;
@@ -37,7 +40,8 @@ public class SunRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glClearColor(0, 0, 0, 1);
-        mCircle = new Circle(0, 0, 0, 0.5f, 100);
+        mCircle = new Circle(0, 0, 0, 0.3f, 100);
+        mRay = new Rays(mCircle, 0.5f, 20);
 
         mProgram = GLES20.glCreateProgram();
         int vsh = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
@@ -51,7 +55,7 @@ public class SunRenderer implements GLSurfaceView.Renderer {
         GLES20.glAttachShader(mProgram, vsh);
         GLES20.glAttachShader(mProgram, fsh);
         GLES20.glLinkProgram(mProgram);
-
+        GLES20.glUseProgram(mProgram);
         mAttribPosition = GLES20.glGetAttribLocation(mProgram, "position");
     }
 
@@ -64,8 +68,10 @@ public class SunRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        GLES20.glUseProgram(mProgram);
-        mCircle.draw(mAttribPosition);
+        GLES20.glEnableVertexAttribArray(mAttribPosition);
+        mCircle.onDraw(mAttribPosition);
+        mRay.onDraw(mAttribPosition);
+        GLES20.glDisableVertexAttribArray(mAttribPosition);
     }
 
     private static class Circle {
@@ -73,8 +79,9 @@ public class SunRenderer implements GLSurfaceView.Renderer {
         private float y;
         private float z;
         private float radius;
-        private final FloatBuffer mVertices;
+        private final float[] vertices;
         private int count;
+        private final FloatBuffer vertexBuffer;
 
         public Circle(float x, float y, float z, float radius, int count) {
             this.x = x;
@@ -82,11 +89,11 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             this.z = z;
             this.radius = radius;
             this.count = count;
-            mVertices = genModel(count);
+            vertices = genVertices(count);
+            vertexBuffer = genModel();
         }
 
-        private FloatBuffer genModel(int count) {
-            float[] vertices = genVertices(count);
+        private FloatBuffer genModel() {
             FloatBuffer buf = ByteBuffer.allocateDirect(vertices.length * 4)
                     .order(ByteOrder.nativeOrder())
                     .asFloatBuffer();
@@ -96,7 +103,7 @@ public class SunRenderer implements GLSurfaceView.Renderer {
         }
 
         private float[] genVertices(int count) {
-            float[] v = new float[(count + 2) * 2];
+            float[] v = new float[getCount() * 2];
             int offset = 0;
             v[offset++] = x;
             v[offset++] = y;
@@ -108,13 +115,71 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             return v;
         }
 
-        public void draw(int attribPosition) {
-            GLES20.glEnableVertexAttribArray(attribPosition);
-            // Remember to position the buffer, otherwise you will get error
-            mVertices.position(0);
-            GLES20.glVertexAttribPointer(attribPosition, 2, GLES20.GL_FLOAT, false, 0, mVertices);
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, count + 2);
-            GLES20.glDisableVertexAttribArray(attribPosition);
+        private int getCount() {
+            return count + 2;
         }
+
+        public void onDraw(int position) {
+            // Remember to position the buffer, otherwise you will get error
+            vertexBuffer.position(0);
+            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, getCount());
+        }
+    }
+
+    private static class Rays {
+        private Circle mCircle;
+        private float radius;
+        private int count;
+
+        private final float[] vertices;
+        private final Random random;
+        private final FloatBuffer vertexBuffer;
+
+        public Rays(Circle circle, float radius, int count) {
+            mCircle = circle;
+            this.radius = radius;
+            this.count = count;
+
+            random = new Random();
+            vertices = new float[getCount()];
+            vertexBuffer = genModel();
+        }
+
+        private FloatBuffer genModel() {
+            FloatBuffer buf = ByteBuffer.allocateDirect(vertices.length * 4)
+                    .order(ByteOrder.nativeOrder())
+                    .asFloatBuffer();
+            return buf;
+        }
+
+        private int getCount() {
+            return count * 4;
+        }
+
+        private void genVertices() {
+            int offset = 0;
+            for (int i = 0; i < count; i++) {
+                float angle = (float) Math.PI * 2f * (float) i / (float) count;
+                float ep = random.nextFloat() * (radius - mCircle.radius) / 2;
+                vertices[offset++] = mCircle.x + (mCircle.radius + ep) * FloatMath.cos(angle);
+                vertices[offset++] = mCircle.y + (mCircle.radius + ep) * FloatMath.sin(angle);
+                vertices[offset++] = mCircle.x + (radius + ep) * FloatMath.cos(angle);
+                vertices[offset++] = mCircle.y + (radius + ep) * FloatMath.sin(angle);
+            }
+        }
+
+        public void onDraw(int position) {
+            genVertices();
+            vertexBuffer.position(0);
+            vertexBuffer.put(vertices);
+            vertexBuffer.position(0);
+            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+            GLES20.glDrawArrays(GLES20.GL_LINES, 0, getCount());
+        }
+    }
+
+    interface Geometry {
+        void onDraw(int position);
     }
 }
