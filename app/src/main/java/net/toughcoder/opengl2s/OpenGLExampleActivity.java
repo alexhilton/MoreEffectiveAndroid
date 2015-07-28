@@ -53,12 +53,13 @@ public class OpenGLExampleActivity extends ActionBarActivity {
         int width = getResources().getDisplayMetrics().widthPixels;
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(width, width);
         mGLView.setLayoutParams(params);
-        StarRenderer renderer = new StarRenderer(this);
+//        StarRenderer renderer = new StarRenderer(this);
+        GLSurfaceView.Renderer renderer = new SunRenderer();
         mGLView.setEGLContextClientVersion(2);
         mGLView.setRenderer(renderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         setContentView(mGLView);
-        refresh();
+//        refresh();
     }
 
     private void refresh() {
