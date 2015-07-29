@@ -4,6 +4,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.FloatMath;
 
+import net.toughcoder.oaqs.ShaderHelper;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -43,18 +45,7 @@ public class SunRenderer implements GLSurfaceView.Renderer {
         mCircle = new Circle(0, 0, 0, 0.3f, 100);
         mRay = new Rays(mCircle, 0.5f, 20);
 
-        mProgram = GLES20.glCreateProgram();
-        int vsh = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
-        GLES20.glShaderSource(vsh, VERTEX_SHADER);
-        GLES20.glCompileShader(vsh);
-
-        int fsh = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
-        GLES20.glShaderSource(fsh, FRAGMENT_SHADER);
-        GLES20.glCompileShader(fsh);
-
-        GLES20.glAttachShader(mProgram, vsh);
-        GLES20.glAttachShader(mProgram, fsh);
-        GLES20.glLinkProgram(mProgram);
+        mProgram = ShaderHelper.buildProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         GLES20.glUseProgram(mProgram);
         mAttribPosition = GLES20.glGetAttribLocation(mProgram, "position");
     }
