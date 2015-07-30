@@ -65,35 +65,24 @@ public class SunRenderer implements GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(mAttribPosition);
     }
 
-    private static class Circle {
+    private static class Circle extends Model {
         private float x;
         private float y;
         private float z;
         private float radius;
-        private final float[] vertices;
-        private int count;
-        private final FloatBuffer vertexBuffer;
+        private final int count;
 
         public Circle(float x, float y, float z, float radius, int count) {
+            super((count + 2) * 2);
             this.x = x;
             this.y = y;
             this.z = z;
             this.radius = radius;
             this.count = count;
-            vertices = genVertices(count);
-            vertexBuffer = genModel();
         }
 
-        private FloatBuffer genModel() {
-            FloatBuffer buf = ByteBuffer.allocateDirect(vertices.length * 4)
-                    .order(ByteOrder.nativeOrder())
-                    .asFloatBuffer();
-            buf.position(0);
-            buf.put(vertices);
-            return buf;
-        }
-
-        private float[] genVertices(int count) {
+        @Override
+        public float[] genVertices() {
             float[] v = new float[getCount() * 2];
             int offset = 0;
             v[offset++] = x;
@@ -106,71 +95,86 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             return v;
         }
 
-        private int getCount() {
-            return count + 2;
+        @Override
+        public void onPostDraw() {
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, getCount());
         }
 
-        public void onDraw(int position) {
-            // Remember to position the buffer, otherwise you will get error
-            vertexBuffer.position(0);
-            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, getCount());
+        @Override
+        public int getCount() {
+            return count + 2;
         }
     }
 
-    private static class Rays {
+    private static class Rays extends Model {
         private Circle mCircle;
         private float radius;
         private int count;
 
-        private final float[] vertices;
         private final Random random;
-        private final FloatBuffer vertexBuffer;
 
         public Rays(Circle circle, float radius, int count) {
+            super(count * 4);
             mCircle = circle;
             this.radius = radius;
             this.count = count;
 
             random = new Random();
-            vertices = new float[getCount()];
-            vertexBuffer = genModel();
         }
 
-        private FloatBuffer genModel() {
-            FloatBuffer buf = ByteBuffer.allocateDirect(vertices.length * 4)
-                    .order(ByteOrder.nativeOrder())
-                    .asFloatBuffer();
-            return buf;
-        }
-
-        private int getCount() {
-            return count * 4;
-        }
-
-        private void genVertices() {
+        @Override
+        public float[] genVertices() {
+            float[] v = new float[count * 4];
             int offset = 0;
             for (int i = 0; i < count; i++) {
                 float angle = (float) Math.PI * 2f * (float) i / (float) count;
                 float ep = random.nextFloat() * (radius - mCircle.radius) / 2;
-                vertices[offset++] = mCircle.x + (mCircle.radius + ep) * FloatMath.cos(angle);
-                vertices[offset++] = mCircle.y + (mCircle.radius + ep) * FloatMath.sin(angle);
-                vertices[offset++] = mCircle.x + (radius + ep) * FloatMath.cos(angle);
-                vertices[offset++] = mCircle.y + (radius + ep) * FloatMath.sin(angle);
+                v[offset++] = mCircle.x + (mCircle.radius + ep) * FloatMath.cos(angle);
+                v[offset++] = mCircle.y + (mCircle.radius + ep) * FloatMath.sin(angle);
+                v[offset++] = mCircle.x + (radius + ep) * FloatMath.cos(angle);
+                v[offset++] = mCircle.y + (radius + ep) * FloatMath.sin(angle);
             }
+
+            return v;
         }
 
-        public void onDraw(int position) {
-            genVertices();
-            vertexBuffer.position(0);
-            vertexBuffer.put(vertices);
-            vertexBuffer.position(0);
-            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+        @Override
+        public void onPostDraw() {
             GLES20.glDrawArrays(GLES20.GL_LINES, 0, getCount());
+        }
+
+        @Override
+        public int getCount() {
+            return count * 2;
         }
     }
 
     interface Geometry {
         void onDraw(int position);
+    }
+
+    static abstract class Model implements Geometry {
+        private FloatBuffer vertexBuffer;
+
+        public Model(int verticeCount) {
+            vertexBuffer = ByteBuffer.allocateDirect(verticeCount * 4)
+                    .order(ByteOrder.nativeOrder())
+                    .asFloatBuffer();
+        }
+
+        public void onDraw(int position) {
+            vertexBuffer.position(0);
+            vertexBuffer.put(genVertices());
+            vertexBuffer.position(0);
+
+            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+            onPostDraw();
+        }
+
+        abstract void onPostDraw();
+
+        abstract float[] genVertices();
+
+        abstract int getCount();
     }
 }
