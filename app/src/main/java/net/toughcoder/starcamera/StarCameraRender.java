@@ -5,9 +5,11 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import net.toughcoder.oaqs.ShaderHelper;
 import net.toughcoder.oaqs.ShaderProgram;
+import net.toughcoder.opengl2s.OpenGLES2SurfaceView;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,6 +25,8 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by alexhilton on 15/8/1.
  */
 public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewCallback {
+    private static final String TAG = "StarCameraRender";
+
     public static final String VERTEX_SHADER = "" +
             "attribute vec4 position;\n" +
             "attribute vec4 inputTextureCoords;\n" +
@@ -57,13 +61,17 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
     private int mTextureCoords;
     private int mYUniformLocation;
     private int mUVUniformLocation;
+    private CameraModel mModel;
+
+    private Camera mCamera;
 
     public StarCameraRender(Context ctx) {
         mContext = ctx;
         mRendererJob = new LinkedList<>();
         mYTexture = -1;
         mUVTexture = -1;
-        setupCamera();
+
+        mModel = new CameraModel();
     }
 
     @Override
@@ -86,8 +94,25 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glUseProgram(mGLProgram);
+        runAllJobs();
         if (mYTexture < 0 || mUVTexture < 0) {
             return;
+        }
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glUniform1i(mYUniformLocation, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mYTexture);
+
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+        GLES20.glUniform1i(mUVUniformLocation, 1);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mUVTexture);
+
+        mModel.onDraw(mAttribPosition, mTextureCoords);
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+        if (mCameraPreviewTexture != null) {
+            mCameraPreviewTexture.updateTexImage();
         }
     }
 
@@ -117,8 +142,30 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
 
                 mYTexture = loadTexture(mYBuffer, size.width, size.height, mYTexture, false);
                 mUVTexture = loadTexture(mUVBuffer, size.width / 2, size.height / 2, mUVTexture, true);
+                camera.addCallbackBuffer(data);
             }
         });
+    }
+
+    public void resume() {
+        setupCamera();
+    }
+
+    public void pause() {
+        if (mCamera == null) {
+            return;
+        }
+        mCamera.setPreviewCallback(null);
+        mCamera.release();
+        mCamera = null;
+    }
+
+    private void runAllJobs() {
+        synchronized (mRendererJob) {
+            while (!mRendererJob.isEmpty()) {
+                mRendererJob.remove(0).run();
+            }
+        }
     }
 
     private void setupCamera() {
@@ -129,17 +176,29 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
                     int[] texture = new int[1];
                     GLES20.glGenTextures(1, texture, 0);
                     mCameraPreviewTexture = new SurfaceTexture(texture[0]);
-                    Camera camera = Camera.open();
-                    Camera.Parameters params = camera.getParameters();
+                    mCamera = Camera.open();
+                    configCamera(mCamera);
+                    Camera.Parameters params = mCamera.getParameters();
                     params.setPreviewSize(params.getSupportedPreviewSizes().get(1).width,
                             params.getSupportedPreviewSizes().get(1).height);
-                    camera.setPreviewTexture(mCameraPreviewTexture);
-                    camera.setPreviewCallback(StarCameraRender.this);
+                    mCamera.setPreviewTexture(mCameraPreviewTexture);
+                    mCamera.setPreviewCallback(StarCameraRender.this);
+                    mCamera.startPreview();
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (Exception e) {
+                    Log.e(TAG, "exception ", e);
                 }
             }
         });
+    }
+
+    private void configCamera(Camera camera) {
+        Camera.Parameters params = camera.getParameters();
+        if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        }
+        camera.setParameters(params);
     }
 
     private void addRendererJob(Runnable job) {
@@ -157,9 +216,9 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
         };
 
         private float[] textureCoords = {
-                0, 1,
                 1, 1,
                 1, 0,
+                0, 1,
                 0, 0,
         };
 
@@ -181,7 +240,18 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
         }
 
         public void onDraw(int position, int texturePosition) {
-            //
+            GLES20.glEnableVertexAttribArray(position);
+            GLES20.glEnableVertexAttribArray(texturePosition);
+
+            vertexBuffer.position(0);
+            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+            textureBuffer.position(0);
+            GLES20.glVertexAttribPointer(texturePosition, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
+
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+
+            GLES20.glDisableVertexAttribArray(position);
+            GLES20.glDisableVertexAttribArray(texturePosition);
         }
     }
 

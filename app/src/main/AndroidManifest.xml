@@ -42,8 +42,13 @@
                   android:label="Share Weixin"
                   android:theme="@android:style/Theme.Holo"
             />
+        <activity android:name="net.toughcoder.starcamera.StarCameraActivity"
+                  android:label="Star Camera"
+                  android:theme="@android:style/Theme.Holo"
+            />
     </application>
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 </manifest>

@@ -12,6 +12,7 @@ import android.view.View;
 
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
+import net.toughcoder.starcamera.StarCameraActivity;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -72,6 +73,16 @@ public class MainActivity extends ActionBarActivity {
                 Intent it = new Intent(Intent.ACTION_VIEW);
 //                it.setClass(getApplicationContext(), ShareWeixinActivity.class);
                 it.setData(Uri.parse("http://h5.m.taobao.com/tusou/album/index.html?pssource=effective&search=1"));
+                startActivity(it);
+            }
+        });
+
+        View sc = findViewById(R.id.star_camera);
+        sc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), StarCameraActivity.class);
                 startActivity(it);
             }
         });
