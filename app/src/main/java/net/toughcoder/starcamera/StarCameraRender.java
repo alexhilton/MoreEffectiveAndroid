@@ -27,27 +27,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewCallback {
     private static final String TAG = "StarCameraRender";
 
-    public static final String VERTEX_SHADER = "" +
-            "attribute vec4 position;\n" +
-            "attribute vec4 inputTextureCoords;\n" +
-            "varying vec2 textureCoords;\n" +
-            "void main() {\n" +
-            "  gl_Position = position;\n" +
-            "  textureCoords = inputTextureCoords.xy;\n" +
-            "}";
 
-    public static final String YUV_FRAGMENT_SHADER = "" +
-            "precision highp float;\n" +
-            "const vec2 uvDelta = vec2(0.5 , 0.5);\n" +
-            "const mat3 convertMatrix = mat3(1.0 , 1.0 , 1.0 , 0 , -0.39465 , 2.03211 , 1.13983 , -0.58060 , 0);\n" +
-            "uniform sampler2D uYTextureSampler;\n" +
-            "uniform sampler2D uUVTextureSampler;\n" +
-            "varying vec2 textureCoords;\n" +
-            "void main () {\n" +
-            "  vec3 yuv = vec3(texture2D(uYTextureSampler, textureCoords).r, texture2D(uUVTextureSampler, textureCoords).ar - uvDelta);\n" +
-            "  vec3 rgb = convertMatrix * yuv;\n" +
-            "  gl_FragColor = vec4(rgb, 1.0);\n" +
-            "}";
 
     private Context mContext;
     private List<Runnable> mRendererJob;
@@ -56,11 +36,7 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
     private ByteBuffer mUVBuffer;
     private int mYTexture;
     private int mUVTexture;
-    private int mGLProgram;
-    private int mAttribPosition;
-    private int mTextureCoords;
-    private int mYUniformLocation;
-    private int mUVUniformLocation;
+
     private CameraModel mModel;
 
     private Camera mCamera;
@@ -70,19 +46,12 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
         mRendererJob = new LinkedList<>();
         mYTexture = -1;
         mUVTexture = -1;
-
-        mModel = new CameraModel();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glClearColor(0f, 0f, 0f, 1.0f);
-        mGLProgram = ShaderHelper.buildProgram(VERTEX_SHADER, YUV_FRAGMENT_SHADER);
-
-        mAttribPosition = GLES20.glGetAttribLocation(mGLProgram, "position");
-        mTextureCoords = GLES20.glGetAttribLocation(mGLProgram, "inputTextureCoords");
-        mYUniformLocation = GLES20.glGetUniformLocation(mGLProgram, "uYTextureSampler");
-        mUVUniformLocation = GLES20.glGetUniformLocation(mGLProgram, "uUVTextureSampler");
+        mModel = new CameraModel();
     }
 
     @Override
@@ -93,23 +62,9 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        GLES20.glUseProgram(mGLProgram);
         runAllJobs();
-        if (mYTexture < 0 || mUVTexture < 0) {
-            return;
-        }
 
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glUniform1i(mYUniformLocation, 0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mYTexture);
-
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-        GLES20.glUniform1i(mUVUniformLocation, 1);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mUVTexture);
-
-        mModel.onDraw(mAttribPosition, mTextureCoords);
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        mModel.onDraw(mYTexture, mUVTexture);
 
         if (mCameraPreviewTexture != null) {
             mCameraPreviewTexture.updateTexImage();
@@ -208,6 +163,27 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
     }
 
     static class CameraModel {
+        public static final String VERTEX_SHADER = "" +
+                "attribute vec4 position;\n" +
+                "attribute vec4 inputTextureCoords;\n" +
+                "varying vec2 textureCoords;\n" +
+                "void main() {\n" +
+                "  gl_Position = position;\n" +
+                "  textureCoords = inputTextureCoords.xy;\n" +
+                "}";
+
+        public static final String YUV_FRAGMENT_SHADER = "" +
+                "precision highp float;\n" +
+                "const vec2 uvDelta = vec2(0.5 , 0.5);\n" +
+                "const mat3 convertMatrix = mat3(1.0 , 1.0 , 1.0 , 0 , -0.39465 , 2.03211 , 1.13983 , -0.58060 , 0);\n" +
+                "uniform sampler2D uYTextureSampler;\n" +
+                "uniform sampler2D uUVTextureSampler;\n" +
+                "varying vec2 textureCoords;\n" +
+                "void main () {\n" +
+                "  vec3 yuv = vec3(texture2D(uYTextureSampler, textureCoords).r, texture2D(uUVTextureSampler, textureCoords).ar - uvDelta);\n" +
+                "  vec3 rgb = convertMatrix * yuv;\n" +
+                "  gl_FragColor = vec4(rgb, 1.0);\n" +
+                "}";
         private float[] model = {
                 -1.0f, -1.0f,
                 1.0f, -1.0f,
@@ -225,6 +201,12 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
         private FloatBuffer vertexBuffer;
         private FloatBuffer textureBuffer;
 
+        private int mGLProgram;
+        private int mAttribPosition;
+        private int mTextureCoords;
+        private int mYUniformLocation;
+        private int mUVUniformLocation;
+
         public CameraModel() {
             vertexBuffer = ByteBuffer.allocateDirect(model.length * 4)
                     .order(ByteOrder.nativeOrder())
@@ -237,21 +219,42 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
                     .asFloatBuffer();
             textureBuffer.position(0);
             textureBuffer.put(textureCoords);
+
+            mGLProgram = ShaderHelper.buildProgram(VERTEX_SHADER, YUV_FRAGMENT_SHADER);
+
+            mAttribPosition = GLES20.glGetAttribLocation(mGLProgram, "position");
+            mTextureCoords = GLES20.glGetAttribLocation(mGLProgram, "inputTextureCoords");
+            mYUniformLocation = GLES20.glGetUniformLocation(mGLProgram, "uYTextureSampler");
+            mUVUniformLocation = GLES20.glGetUniformLocation(mGLProgram, "uUVTextureSampler");
         }
 
-        public void onDraw(int position, int texturePosition) {
-            GLES20.glEnableVertexAttribArray(position);
-            GLES20.glEnableVertexAttribArray(texturePosition);
+        public void onDraw(int yTexture, int uvTexture) {
+            GLES20.glUseProgram(mGLProgram);
+            if (yTexture < 0 || uvTexture < 0) {
+                return;
+            }
+
+            GLES20.glEnableVertexAttribArray(mAttribPosition);
+            GLES20.glEnableVertexAttribArray(mTextureCoords);
+
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+            GLES20.glUniform1i(mYUniformLocation, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, yTexture);
+
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+            GLES20.glUniform1i(mUVUniformLocation, 1);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, uvTexture);
 
             vertexBuffer.position(0);
-            GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+            GLES20.glVertexAttribPointer(mAttribPosition, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
             textureBuffer.position(0);
-            GLES20.glVertexAttribPointer(texturePosition, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
+            GLES20.glVertexAttribPointer(mTextureCoords, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
 
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
-            GLES20.glDisableVertexAttribArray(position);
-            GLES20.glDisableVertexAttribArray(texturePosition);
+            GLES20.glDisableVertexAttribArray(mAttribPosition);
+            GLES20.glDisableVertexAttribArray(mTextureCoords);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         }
     }
 
