@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.ViewGroup;
 
 /**
@@ -11,13 +12,16 @@ import android.view.ViewGroup;
  */
 public class StarCameraActivity extends Activity {
     private StarCameraRender mRender;
+    private Handler mHandler;
+    private GLSurfaceView view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        GLSurfaceView view = new GLSurfaceView(this);
+        final int width = getResources().getDisplayMetrics().widthPixels;
+        view = new GLSurfaceView(this);
         ViewGroup.LayoutParams lp =
-                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                new ViewGroup.LayoutParams(width, width);
         setContentView(view, lp);
         view.setPreserveEGLContextOnPause(true);
         view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
@@ -25,6 +29,19 @@ public class StarCameraActivity extends Activity {
         view.setEGLContextClientVersion(2);
         mRender = new StarCameraRender(this);
         view.setRenderer(mRender);
+//        view.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mHandler = new Handler();
+//        refresh();
+    }
+
+    private void refresh() {
+        view.requestRender();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                refresh();
+            }
+        }, 200);
     }
 
     @Override
