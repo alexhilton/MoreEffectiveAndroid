@@ -46,6 +46,9 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
 
     private Camera mCamera;
 
+    private int mWidth;
+    private int mHeight;
+
     public StarCameraRender(Context ctx) {
         mContext = ctx;
         mRendererJob = new LinkedList<>();
@@ -66,6 +69,8 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
+        mWidth = width;
+        mHeight = height;
     }
 
     @Override
@@ -172,7 +177,7 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
         }
     }
 
-    static class CameraModel {
+    class CameraModel {
         public static final String VERTEX_SHADER = "" +
                 "attribute vec4 position;\n" +
                 "attribute vec4 inputTextureCoords;\n" +
@@ -268,7 +273,7 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
         }
     }
 
-    private static class Stars {
+    private class Stars {
         private static final String VERTEX_SHADER =
                         "attribute vec4 modelPosition;\n" +
                         "attribute vec4 inputTextureCoords;\n" +
@@ -284,7 +289,7 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
                         "void main() {\n" +
                         "  gl_FragColor = texture2D(uTexture, textureCoords);\n" +
                         "}";
-        private float starLen = 0.1f;
+        private float starLen = 0.016f;
         private float[] star = {
                 -starLen, -starLen,
                 starLen, -starLen,
@@ -361,7 +366,12 @@ public class StarCameraRender implements GLSurfaceView.Renderer, Camera.PreviewC
                 float x = random.nextFloat();
                 float y = random.nextFloat();
                 float z = random.nextFloat();
+                int xsign = random.nextFloat() >= 0.5f ? 1 : -1;
+                int ysign = random.nextFloat() < 0.5f ? 1 : -1;
+                x *= xsign;
+                y *= ysign;
                 Matrix.translateM(modelMatrix, 0, x, y, z);
+                Matrix.scaleM(modelMatrix, 0, 1.0f, (float) mWidth / (float) mHeight, 1.0f);
 
                 GLES20.glEnableVertexAttribArray(mAttribPosition);
                 GLES20.glEnableVertexAttribArray(mAttribTextureCoords);
