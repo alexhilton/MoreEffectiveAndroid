@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.ViewGroup;
 
+import net.toughcoder.opengl2s.SimpleRenderer;
+
 /**
  * Created by alexhilton on 15/8/4.
  */
@@ -28,8 +30,8 @@ public class StarCameraActivity extends Activity {
         view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         view.getHolder().setFormat(PixelFormat.RGBA_8888);
         view.setEGLContextClientVersion(2);
-        mRender = new StarCameraRender(this);
-        view.setRenderer(mRender);
+//        mRender = new StarCameraRender(this);
+        view.setRenderer(new SimpleRenderer());
         view.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mHandler = new Handler();
         refresh();
@@ -48,13 +50,13 @@ public class StarCameraActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        mRender.resume();
+//        mRender.resume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mRender.pause();
+//        mRender.pause();
     }
 
     @Override

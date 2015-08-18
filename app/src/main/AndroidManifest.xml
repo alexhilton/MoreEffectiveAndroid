@@ -46,6 +46,9 @@
                   android:label="Star Camera"
                   android:theme="@android:style/Theme.Holo"
             />
+        <activity android:name="net.toughcoder.widget.RecyclerViewExampleActivity"
+                  android:label="RecyclerView Example"
+                  android:theme="@android:style/Theme.Holo" />
     </application>
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
