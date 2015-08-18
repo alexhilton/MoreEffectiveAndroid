@@ -65,32 +65,23 @@ public class RecyclerViewExampleActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        ShowType type;
         switch (item.getItemId()) {
             case R.id.list:
-                if (mShowType == ShowType.LIST) {
-                    return false;
-                }
-                mShowType = ShowType.LIST;
-                refresh(new LinearLayoutManager(this));
-                return true;
+                type = ShowType.LIST;
+                break;
             case R.id.grid:
-                if (mShowType == ShowType.GRID) {
-                    return false;
-                }
-                mShowType = ShowType.GRID;
-                refresh(new GridLayoutManager(this, 3));
-                return true;
+                type = ShowType.GRID;
+                break;
             case R.id.waterfall:
-                if (mShowType == ShowType.WATERFALL) {
-                    return false;
-                }
-                mShowType = ShowType.WATERFALL;
-                refresh(new StaggeredGridLayoutManager(3, 1));
-                return true;
+                type = ShowType.WATERFALL;
+                break;
             default:
+                type = ShowType.LIST;
                 break;
         }
-        return super.onOptionsItemSelected(item);
+        switchToType(type);
+        return true;
     }
 
     private void setupRecyclerView(RecyclerView rv) {
@@ -99,9 +90,26 @@ public class RecyclerViewExampleActivity extends Activity {
         rv.setItemAnimator(new DefaultItemAnimator());
     }
 
-    private void refresh(RecyclerView.LayoutManager lm) {
-        mRecylerView.setLayoutManager(lm);
+    private void switchToType(ShowType type) {
+        if (type == mShowType) {
+            return;
+        }
+        mShowType = type;
+        mRecylerView.setLayoutManager(createLayoutManager(type));
         mAdapter.refresh(mShowType);
+    }
+
+    private RecyclerView.LayoutManager createLayoutManager(ShowType type) {
+        switch (type) {
+            case LIST:
+                return new LinearLayoutManager(this);
+            case GRID:
+                return new GridLayoutManager(this, 3);
+            case WATERFALL:
+                return new StaggeredGridLayoutManager(3, 1);
+            default:
+                return new LinearLayoutManager(this);
+        }
     }
 
 
