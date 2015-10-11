@@ -27,39 +27,46 @@
             android:text="DrawableLabel Test"/>
 
         <Button android:id="@+id/opengl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="OpenGL ES"/>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="OpenGL ES"/>
 
         <Button android:id="@+id/launch_mirror"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dip"
-                android:layout_marginRight="20dip"
-                android:layout_marginLeft="20dip"
-                android:text="Stars" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Stars" />
 
         <Button android:id="@+id/launch_mirror_h5"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dip"
-                android:layout_marginRight="20dip"
-                android:layout_marginLeft="20dip"
-                android:text="Share Weixin" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Share Weixin" />
 
         <Button android:id="@+id/star_camera"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dip"
-                android:layout_marginRight="20dip"
-                android:layout_marginLeft="20dip"
-                android:text="Star Camera" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Star Camera" />
         <Button android:id="@+id/recyclerview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dip"
-                android:layout_marginRight="20dip"
-                android:layout_marginLeft="20dip"
-                android:text="Recycler View" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Recycler View" />
+        <Button android:id="@+id/keyboard_aware"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Keyboard Aware" />
     </LinearLayout>
 </ScrollView>

@@ -1,8 +1,12 @@
 package net.toughcoder.effectiveandroid;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -96,7 +100,56 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(it);
             }
         });
+        View ka = findViewById(R.id.keyboard_aware);
+        ka.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), KeyboardAwareActivity.class);
+                startActivity(it);
+            }
+        });
+//      try {
+//        Thread.sleep(10 * 1000);
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+//      block();
+        new Handler().post(new Runnable() {
+          @Override
+          public void run() {
+//               showADialog("shit man");
+//            showProgressDialog();
+          }
+        });
     }
+
+  private void showADialog(String msg) {
+    Dialog dialog = new AlertDialog.Builder(this)
+        .setTitle("Alert")
+        .setMessage(msg)
+        .setIcon(android.R.drawable.ic_dialog_alert)
+        .create();
+    dialog.show();
+  }
+
+  private void showProgressDialog() {
+    Dialog dialog = ProgressDialog.show(this, "welcome", "Hello, world");
+  }
+
+  private void block() {
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    new Handler().postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        block();
+      }
+    }, 10);
+  }
 
     @Override
     protected void onPostResume() {

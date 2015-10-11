@@ -1,5 +1,6 @@
 package net.toughcoder.opengl2s;
 
+import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -9,6 +10,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import net.toughcoder.effectiveandroid.R;
 import net.toughcoder.oaqs.AirHockeyRenderer;
@@ -58,7 +61,16 @@ public class OpenGLExampleActivity extends ActionBarActivity {
         mGLView.setEGLContextClientVersion(2);
         mGLView.setRenderer(renderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        setContentView(mGLView);
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.addView(mGLView);
+
+        TextView label = new TextView(this);
+        label.setText("Welcome");
+        label.setTextSize(16);
+        label.setTextColor(Color.BLACK);
+        content.addView(label);
+        setContentView(content);
         refresh();
     }
 

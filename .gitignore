@@ -11,3 +11,6 @@ assets
 *.*~
 /build
 app/build
+app/app.iml
+.gradle/*
+local.properties
