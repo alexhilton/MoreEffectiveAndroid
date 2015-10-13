@@ -86,7 +86,7 @@ public class KeyboardAwareActivity extends Activity {
 
     private boolean isKeyboardShown(View rootView) {
         Log.e("keyboard", "isKeyboardShown rootView is " + rootView);
-        final int softKeyboardHeight = 128;
+        final int softKeyboardHeight = 100;
         Rect r = new Rect();
         rootView.getWindowVisibleDisplayFrame(r);
         Log.e("keyboard", "rootView window visible display frame is " + r);
