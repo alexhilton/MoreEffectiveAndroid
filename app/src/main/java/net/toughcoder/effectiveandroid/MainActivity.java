@@ -76,8 +76,6 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent it = new Intent(Intent.ACTION_VIEW);
-//                it.setClass(getApplicationContext(), ShareWeixinActivity.class);
-                it.setData(Uri.parse("http://h5.m.taobao.com/tusou/album/index.html?pssource=effective&search=1"));
                 startActivity(it);
             }
         });

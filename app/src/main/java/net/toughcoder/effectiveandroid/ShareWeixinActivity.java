@@ -29,9 +29,9 @@ public class ShareWeixinActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.share_weixin_activity);
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        String filepath = "taobao";
-        File taobao = new File(dir, filepath);
-        File file = new File(taobao, "IMG_20150720_180942.jpg");
+        String filepath = "1234";
+        File image = new File(dir, filepath);
+        File file = new File(image, "IMG_20150720_180942.jpg");
         mUri = Uri.fromFile(file);
         ImageView iv = (ImageView) findViewById(R.id.image);
         iv.setImageURI(mUri);
