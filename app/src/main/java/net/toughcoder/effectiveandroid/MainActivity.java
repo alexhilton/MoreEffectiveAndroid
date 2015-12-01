@@ -14,10 +14,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import net.toughcoder.ViewServer;
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
+import net.toughcoder.widget.GridLayoutExampleActivity;
 import net.toughcoder.widget.RecyclerViewExampleActivity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -107,6 +112,15 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(it);
             }
         });
+        View gl = findViewById(R.id.gridlayout);
+        gl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), GridLayoutExampleActivity.class);
+                startActivity(it);
+            }
+        });
 //      try {
 //        Thread.sleep(10 * 1000);
 //      } catch (InterruptedException e) {
@@ -120,8 +134,34 @@ public class MainActivity extends ActionBarActivity {
 //            showProgressDialog();
           }
         });
+        testList();
+
+        ViewServer.get(this).addWindow(this);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ViewServer.get(this).setFocusedWindow(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ViewServer.get(this).removeWindow(this);
+    }
+
+    private void testList() {
+        List<String> names = new ArrayList<String>();
+        names.add("NewYork");
+        names.add("Boston");
+        names.add("Sanfransisco");
+        names.add("Atalantics");
+        names.add("Seatle");
+        Log.e("list", "full list is " + names);
+        names.subList(0, 2);
+        Log.e("list", "sub of 0, 2 " + names);
+    }
   private void showADialog(String msg) {
     Dialog dialog = new AlertDialog.Builder(this)
         .setTitle("Alert")

@@ -6,9 +6,10 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_scroll_linear_layout">ScrollLinearLayout</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_drawable_label">DrawableLabelActivity</string>
     <string name="title_activity_open_glexample">OpenGLExampleActivity</string>
+    <string name="title_activity_grid_layout_example">GridLayoutExampleActivity</string>
 
 </resources>
