@@ -75,5 +75,28 @@
             android:layout_marginRight="20dip"
             android:layout_marginLeft="20dip"
             android:text="GridLayout Example" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:background="#aaeeeeee">
+            <TextView android:id="@+id/left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="-10dp"
+                android:background="#ee1100"
+                android:textColor="@android:color/white"
+                android:text="Sibling"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/left"
+                android:padding="10dip"
+                android:layout_marginLeft="-10dp"
+                android:textColor="@android:color/white"
+                android:background="#880e0eee"
+                android:text="Node"/>
+        </RelativeLayout>
     </LinearLayout>
 </ScrollView>
