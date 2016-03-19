@@ -127,15 +127,9 @@ public class MainActivity extends ActionBarActivity {
 //        e.printStackTrace();
 //      }
 //      block();
-        new Handler().post(new Runnable() {
-          @Override
-          public void run() {
-//               showADialog("shit man");
-//            showProgressDialog();
-          }
-        });
         testList();
-
+        showADialog("help, help");
+        asyncShowDialog("Orz, Orz!");
         ViewServer.get(this).addWindow(this);
     }
 
@@ -161,6 +155,20 @@ public class MainActivity extends ActionBarActivity {
         Log.e("list", "full list is " + names);
         names.subList(0, 2);
         Log.e("list", "sub of 0, 2 " + names);
+    }
+
+    private void asyncShowDialog(final String msg) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                finish();
+            }
+        }).start();
     }
   private void showADialog(String msg) {
     Dialog dialog = new AlertDialog.Builder(this)
