@@ -121,6 +121,15 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(it);
             }
         });
+        View cp = findViewById(R.id.camera_preview);
+        cp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), CameraPreviewActivity.class);
+                startActivity(it);
+            }
+        });
 //      try {
 //        Thread.sleep(10 * 1000);
 //      } catch (InterruptedException e) {

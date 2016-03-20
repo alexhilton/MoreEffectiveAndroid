@@ -28,19 +28,19 @@
         </activity>
         <activity
             android:name=".ScrollLinearLayoutActivity"
-            android:label="@string/title_activity_scroll_linear_layout"></activity>
+            android:label="@string/title_activity_scroll_linear_layout" />
         <activity
             android:name=".FragmentTestActivity"
             android:label="Fragement test" />
         <activity
             android:name=".DrawableLabelActivity"
-            android:label="@string/title_activity_drawable_label"></activity>
+            android:label="@string/title_activity_drawable_label" />
         <activity
             android:name="net.toughcoder.opengl2s.OpenGLExampleActivity"
-            android:label="@string/title_activity_open_glexample"></activity>
+            android:label="@string/title_activity_open_glexample" />
         <activity
             android:name="net.toughcoder.opengl1s.StarActivity"
-            android:label="Star Activity"></activity>
+            android:label="Star Activity" />
         <activity
             android:name=".ShareWeixinActivity"
             android:label="Share Weixin"
@@ -62,6 +62,9 @@
             android:name="net.toughcoder.widget.GridLayoutExampleActivity"
             android:label="@string/title_activity_grid_layout_example"
             android:theme="@android:style/Theme.Holo" />
+        <activity
+            android:name=".CameraPreviewActivity"
+            android:label="@string/title_activity_camera_preview"></activity>
     </application>
 
 </manifest>
