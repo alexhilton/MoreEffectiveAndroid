@@ -72,7 +72,10 @@
             android:theme="@android:style/Theme.Translucent" />
         <activity
             android:name="net.toughcoder.widget.SurfaceExampleActivity"
-            android:label="@string/title_activity_surface_example"></activity>
+            android:label="@string/title_activity_surface_example" />
+        <activity
+            android:name="net.toughcoder.widget.AlphaOpenGLActivity"
+            android:label="@string/title_activity_alpha_open_gl"></activity>
     </application>
 
 </manifest>
