@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -17,7 +17,7 @@ import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
 
-public class CameraPreviewActivity extends ActionBarActivity {
+public class CameraPreviewActivity extends Activity {
     private Camera mCamera;
     private int mIndex;
     private SurfaceView mSurfaceView;
@@ -28,8 +28,13 @@ public class CameraPreviewActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_preview);
         mSurfaceView = (SurfaceView) findViewById(R.id.preview_display);
-        SurfaceHolder hodler = mSurfaceView.getHolder();
-        hodler.addCallback(new SurfaceHolder.Callback() {
+        SurfaceHolder holder = mSurfaceView.getHolder();
+        /// Try to make surfaceview transparent, but not working
+        mSurfaceView.setZOrderOnTop(true);
+        mSurfaceView.setAlpha(0.4f);
+        holder.setFormat(PixelFormat.TRANSPARENT);
+
+        holder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 startPreview(holder);

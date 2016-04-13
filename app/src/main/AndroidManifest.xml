@@ -64,7 +64,8 @@
             android:theme="@android:style/Theme.Holo" />
         <activity
             android:name=".CameraPreviewActivity"
-            android:label="@string/title_activity_camera_preview"></activity>
+            android:label="@string/title_activity_camera_preview"
+            android:theme="@android:style/Theme.Translucent"></activity>
         <activity
             android:name="net.toughcoder.widget.TextureViewActivity"
             android:label="@string/title_activity_camera_preview"
