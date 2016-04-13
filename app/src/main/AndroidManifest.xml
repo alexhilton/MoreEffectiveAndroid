@@ -65,6 +65,10 @@
         <activity
             android:name=".CameraPreviewActivity"
             android:label="@string/title_activity_camera_preview"></activity>
+        <activity
+            android:name="net.toughcoder.widget.TextureViewActivity"
+            android:label="@string/title_activity_camera_preview"
+            android:theme="@android:style/Theme.Translucent"></activity>
     </application>
 
 </manifest>
