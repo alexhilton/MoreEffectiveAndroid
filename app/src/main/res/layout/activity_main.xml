@@ -89,6 +89,13 @@
             android:layout_marginRight="20dip"
             android:layout_marginLeft="20dip"
             android:text="Texture View" />
+        <Button android:id="@+id/surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Surface View" />
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

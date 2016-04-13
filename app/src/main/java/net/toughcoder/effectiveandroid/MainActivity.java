@@ -20,6 +20,7 @@ import net.toughcoder.opengl2s.OpenGLExampleActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.GridLayoutExampleActivity;
 import net.toughcoder.widget.RecyclerViewExampleActivity;
+import net.toughcoder.widget.SurfaceExampleActivity;
 import net.toughcoder.widget.TextureViewActivity;
 
 import java.util.ArrayList;
@@ -137,6 +138,15 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 Intent it = new Intent(Intent.ACTION_VIEW);
                 it.setClass(getApplicationContext(), TextureViewActivity.class);
+                startActivity(it);
+            }
+        });
+        View sv = findViewById(R.id.surface_view);
+        sv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), SurfaceExampleActivity.class);
                 startActivity(it);
             }
         });

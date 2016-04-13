@@ -12,5 +12,6 @@
     <string name="title_activity_open_glexample">OpenGLExampleActivity</string>
     <string name="title_activity_grid_layout_example">GridLayoutExampleActivity</string>
     <string name="title_activity_camera_preview">CameraPreviewActivity</string>
+    <string name="title_activity_surface_example">SurfaceExampleActivity</string>
 
 </resources>
