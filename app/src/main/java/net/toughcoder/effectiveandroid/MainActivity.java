@@ -19,6 +19,7 @@ import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
+import net.toughcoder.widget.BitmapBlurTestActivity;
 import net.toughcoder.widget.GridLayoutExampleActivity;
 import net.toughcoder.widget.RecyclerViewExampleActivity;
 import net.toughcoder.widget.SurfaceExampleActivity;
@@ -157,6 +158,15 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 Intent it = new Intent(Intent.ACTION_VIEW);
                 it.setClass(getApplicationContext(), AlphaOpenGLActivity.class);
+                startActivity(it);
+            }
+        });
+        View blur = findViewById(R.id.bitmap_blur);
+        blur.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), BitmapBlurTestActivity.class);
                 startActivity(it);
             }
         });
