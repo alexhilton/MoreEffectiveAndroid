@@ -1,6 +1,10 @@
 package net.toughcoder.widget;
 
 import android.graphics.Bitmap;
+import android.support.v8.renderscript.Allocation;
+import android.support.v8.renderscript.Element;
+import android.support.v8.renderscript.RenderScript;
+import android.support.v8.renderscript.ScriptIntrinsicBlur;
 
 /**
  * Created by alexhilton on 16/4/17.
@@ -227,4 +231,16 @@ public class BlurMethod {
     }
 
     public static native void nativeBlur(Bitmap bm, int radius);
+
+    public static Bitmap blurWithRenderScript(RenderScript rs, Bitmap bm, int radius) {
+        final Allocation input = Allocation.createFromBitmap(rs, bm);
+        final Allocation output = Allocation.createTyped(rs, input.getType());
+        final ScriptIntrinsicBlur script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+        script.setRadius((float) radius);
+        script.setInput(input);
+        script.forEach(output);
+        output.copyTo(bm);
+
+        return bm;
+    }
 }

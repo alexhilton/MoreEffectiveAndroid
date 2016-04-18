@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v8.renderscript.RenderScript;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -17,6 +18,7 @@ import net.toughcoder.effectiveandroid.R;
 public class BitmapBlurTestActivity extends ActionBarActivity {
     private ImageSwitcher mImageSwitcher;
     private Handler mMainHandler;
+    private RenderScript mRS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +26,14 @@ public class BitmapBlurTestActivity extends ActionBarActivity {
         mMainHandler = new Handler();
         setContentView(R.layout.activity_bitmap_blur_test);
         mImageSwitcher = (ImageSwitcher) findViewById(R.id.imageswitcher);
+        mRS = RenderScript.create(this);
         showOriginalImage();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mRS.destroy();
     }
 
     private void showOriginalImage() {
@@ -43,8 +52,10 @@ public class BitmapBlurTestActivity extends ActionBarActivity {
             @Override
             protected Bitmap doInBackground(Void... params) {
                 long t1 = System.currentTimeMillis();
-//                final Bitmap blurred = BlurMethod.fastBlur(original, 20);
-                final Bitmap blurred = BlurMethod.BlurWithNative(original, 20);
+                final int radius = 20;
+//                final Bitmap blurred = BlurMethod.fastBlur(original, radius);
+//                final Bitmap blurred = BlurMethod.BlurWithNative(original, radius);
+                final Bitmap blurred = BlurMethod.blurWithRenderScript(mRS, original, radius);
                 long t2 = System.currentTimeMillis();
                 Log.e("blur", "size h " + original.getHeight() + ", w " + original.getWidth() + ", 20, takes " + (t2 - t1));
                 return blurred;
