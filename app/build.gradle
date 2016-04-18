@@ -3,7 +3,18 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 21
     buildToolsVersion "23.0.3"
-
+    sourceSets {
+        main {
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+            aidl.srcDirs = ['src/main/src']
+            renderscript.srcDirs = ['src/main/src']
+            res.srcDirs = ['src/main/res']
+            java.srcDirs = ['src/main/java']
+            assets.srcDirs = ['src/main/assets']
+            jniLibs.srcDirs = ['src/main/libs']
+            jni.srcDirs = [] // prevent automatic build JNI with ndk-build
+        }
+    }
     defaultConfig {
         applicationId "net.toughcoder.effectiveandroid"
         minSdkVersion 15

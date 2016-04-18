@@ -2,9 +2,11 @@ package net.toughcoder.widget;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageSwitcher;
@@ -33,5 +35,32 @@ public class BitmapBlurTestActivity extends ActionBarActivity {
         FrameLayout.LayoutParams lp =
                 new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         mImageSwitcher.addView(iv, lp);
+        startBlurring(bm);
     }
+
+    private void startBlurring(final Bitmap original) {
+        new AsyncTask<Void, Bitmap, Bitmap>() {
+            @Override
+            protected Bitmap doInBackground(Void... params) {
+                long t1 = System.currentTimeMillis();
+//                final Bitmap blurred = BlurMethod.fastBlur(original, 20);
+                final Bitmap blurred = BlurMethod.BlurWithNative(original, 20);
+                long t2 = System.currentTimeMillis();
+                Log.e("blur", "size h " + original.getHeight() + ", w " + original.getWidth() + ", 20, takes " + (t2 - t1));
+                return blurred;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap blurred) {
+                ImageView iv = new ImageView(BitmapBlurTestActivity.this);
+                iv.setImageBitmap(blurred);
+                iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                FrameLayout.LayoutParams lp =
+                        new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                mImageSwitcher.addView(iv, lp);
+                mImageSwitcher.showNext();
+            }
+        }.execute();
+    }
+
 }
