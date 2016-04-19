@@ -17,6 +17,7 @@ import android.view.View;
 import net.toughcoder.ViewServer;
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
+import net.toughcoder.rs.RSYUV2RGBAActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
 import net.toughcoder.widget.BitmapBlurTestActivity;
@@ -167,6 +168,15 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 Intent it = new Intent(Intent.ACTION_VIEW);
                 it.setClass(getApplicationContext(), BitmapBlurTestActivity.class);
+                startActivity(it);
+            }
+        });
+        View yuv = findViewById(R.id.yuv);
+        yuv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), RSYUV2RGBAActivity.class);
                 startActivity(it);
             }
         });

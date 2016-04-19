@@ -15,5 +15,6 @@
     <string name="title_activity_surface_example">SurfaceExampleActivity</string>
     <string name="title_activity_alpha_open_gl">AlphaOpenGLActivity</string>
     <string name="title_activity_bitmap_blur_test">BitmapBlurTestActivity</string>
+    <string name="title_activity_rsyuv2_rgba">RSYUV2RGBAActivity</string>
 
 </resources>

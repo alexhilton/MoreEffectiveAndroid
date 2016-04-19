@@ -78,7 +78,10 @@
             android:label="@string/title_activity_alpha_open_gl" />
         <activity
             android:name="net.toughcoder.widget.BitmapBlurTestActivity"
-            android:label="@string/title_activity_bitmap_blur_test"></activity>
+            android:label="@string/title_activity_bitmap_blur_test" />
+        <activity
+            android:name="net.toughcoder.rs.RSYUV2RGBAActivity"
+            android:label="@string/title_activity_rsyuv2_rgba"></activity>
     </application>
 
 </manifest>
