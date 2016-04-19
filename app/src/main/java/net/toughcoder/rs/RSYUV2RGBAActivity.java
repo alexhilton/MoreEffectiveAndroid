@@ -105,11 +105,11 @@ public class RSYUV2RGBAActivity extends ActionBarActivity implements Camera.Prev
         if (mBuffer == null) {
             return null;
         }
-        Type.Builder yuvType = new Type.Builder(mRS, Element.U8(mRS));
+        Type.Builder yuvType = new Type.Builder(mRS, Element.YUV(mRS));
         yuvType.setYuvFormat(ImageFormat.NV21);
         yuvType.setX(width);
         yuvType.setY(height);
-        Allocation input = Allocation.createTyped(mRS, yuvType.create(), Allocation.USAGE_SCRIPT);
+        Allocation input = Allocation.createTyped(mRS, yuvType.create()); // By default, it is Allocation.USAGE_SCRIPT
         synchronized (this) {
             input.copyFrom(mBuffer);
         }
@@ -117,9 +117,9 @@ public class RSYUV2RGBAActivity extends ActionBarActivity implements Camera.Prev
         Type.Builder rgbType = new Type.Builder(mRS, Element.RGBA_8888(mRS));
         rgbType.setX(width);
         rgbType.setY(height);
-        Allocation output = Allocation.createTyped(mRS, rgbType.create(), Allocation.USAGE_SCRIPT);
+        Allocation output = Allocation.createTyped(mRS, rgbType.create());
 
-        ScriptIntrinsicYuvToRGB script = ScriptIntrinsicYuvToRGB.create(mRS, Element.RGBA_8888(mRS));
+        ScriptIntrinsicYuvToRGB script = ScriptIntrinsicYuvToRGB.create(mRS, Element.U8(mRS));
         script.setInput(input);
         script.forEach(output);
         Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
