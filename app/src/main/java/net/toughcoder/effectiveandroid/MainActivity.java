@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -17,6 +16,7 @@ import android.view.View;
 import net.toughcoder.ViewServer;
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
+import net.toughcoder.rs.ImagePressActivity;
 import net.toughcoder.rs.RSYUV2RGBAActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
@@ -177,6 +177,15 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 Intent it = new Intent(Intent.ACTION_VIEW);
                 it.setClass(getApplicationContext(), RSYUV2RGBAActivity.class);
+                startActivity(it);
+            }
+        });
+        View snow = findViewById(R.id.press);
+        snow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setClass(getApplicationContext(), ImagePressActivity.class);
                 startActivity(it);
             }
         });

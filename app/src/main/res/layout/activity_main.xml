@@ -117,6 +117,13 @@
             android:layout_marginRight="20dip"
             android:layout_marginLeft="20dip"
             android:text="YUV to RGBA" />
+        <Button android:id="@+id/press"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:layout_marginRight="20dip"
+            android:layout_marginLeft="20dip"
+            android:text="Image Press" />
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -81,7 +81,10 @@
             android:label="@string/title_activity_bitmap_blur_test" />
         <activity
             android:name="net.toughcoder.rs.RSYUV2RGBAActivity"
-            android:label="@string/title_activity_rsyuv2_rgba"></activity>
+            android:label="@string/title_activity_rsyuv2_rgba" />
+        <activity
+            android:name="net.toughcoder.rs.ImagePressActivity"
+            android:label="@string/title_activity_image_press"></activity>
     </application>
 
 </manifest>
