@@ -69,11 +69,11 @@ public class ImagePressActivity extends ActionBarActivity {
 
     // RenderScript-specific properties:
     // RS context
-    private RenderScript rs;
-    // "Glue" class that wraps access to the script.
-    // The IDE generates the class automatically based on the rs file, the class is located in the 'gen'
+    private RenderScript mRS;
+    // "Glue" class that wraps access to the mScript.
+    // The IDE generates the class automatically based on the mRS file, the class is located in the 'gen'
     // folder.
-    private ScriptC_press script;
+    private ScriptC_press mScript;
     // Allocations - memory abstractions that RenderScript kernels operate on.
     private Allocation allocationIn;
     private Allocation allocationOut;
@@ -126,6 +126,7 @@ public class ImagePressActivity extends ActionBarActivity {
         image = null;
         newBitmapPath = null;
 
+
         initRS();
 
         Button buttonPhoto = (Button) findViewById(R.id.PhotoButton);
@@ -146,14 +147,26 @@ public class ImagePressActivity extends ActionBarActivity {
         isShuttingDown = true;
         isGoing.open();
         super.onDestroy();
+        destroyRS();
     }
 
     protected void initRS() {
         // Initialize the RenderScript context.
-        rs = RenderScript.create(this);
-        // Create the specific script, actually the bitcode of the script itself is located in the
+        mRS = RenderScript.create(this);
+        // Create the specific mScript, actually the bitcode of the mScript itself is located in the
         // resources (raw folder).
-        script = new ScriptC_press(rs);
+        mScript = new ScriptC_press(mRS);
+    }
+
+    private void destroyRS() {
+        if (mScript != null) {
+            mScript.destroy();
+            mScript = null;
+        }
+        if (mRS != null) {
+            mRS.destroy();
+            mRS = null;
+        }
     }
 
     public void photoOnClick(View v) {
@@ -178,6 +191,7 @@ public class ImagePressActivity extends ActionBarActivity {
         }
     }
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_SHOT) {
             if (resultCode != RESULT_OK) {
@@ -197,6 +211,101 @@ public class ImagePressActivity extends ActionBarActivity {
         }
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Unleash the "worker" thread.
+        isGoing.open();
+        Log.i("AndroidBasic", "onStart");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // Stop the background filtering thread.
+        isGoing.close();
+        Log.i("AndroidBasic", "onStop");
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+
+        Log.i("AndroidBasic", "onWindowFocusChanged");
+        // When the application is restarted, which means the inputBitmap doesn't exist,
+        // load inputBitmap first and (re)start the worker thread.
+        // If the inputBitmap already exists, the application is likely to resume from the minimized state.
+        if (inputBitmap == null) {
+            String fromResources = null;
+            loadInputImage(fromResources);
+            startBackgroundThread();
+        }
+    }
+
+    private void loadInputImage(String path) {
+        // To avoid potential issues with loading big images, scale the input image to fit the output view.
+        // Obtain the actual dimensions from the outputImageView.
+        int displayWidth = outputImageView.getWidth();
+        int displayHeight = outputImageView.getHeight();
+        Log.i("AndroidBasic", "display dimensions: " + displayWidth + ", " + displayHeight);
+
+        // Obtain the original dimensions of the input picture from resources.
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;    // This avoids the decoding itself and reads the image statistics.
+
+        if (path == null) {
+            BitmapFactory.decodeResource(getResources(), R.drawable.picture, options);
+        } else {
+            BitmapFactory.decodeFile(path, options);
+        }
+
+        int origWidth = options.outWidth;
+        int origHeight = options.outHeight;
+
+        // According to the display and the original dimensions, calculate the scale factor that reduces
+        // the amount of memory needed to store an image, and, at the same time, is not too high to avoid
+        // significant image quality loss.
+        options.inSampleSize = Math.min(origWidth / displayWidth, origHeight / displayHeight);
+
+        // Now decode the real picture content with scaling.
+        options.inJustDecodeBounds = false;
+        if (path == null) {
+            inputBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.picture, options);
+        } else {
+            inputBitmap = BitmapFactory.decodeFile(path, options);
+        }
+
+        inputBitmap = Bitmap.createScaledBitmap(inputBitmap, displayWidth, displayHeight, false);
+
+        // Create an allocation (which is memory abstraction in the RenderScript)
+        // that corresponds to the imputBitmap.
+        allocationIn = Allocation.createFromBitmap(
+                mRS,
+                inputBitmap,
+                Allocation.MipmapControl.MIPMAP_NONE,
+                Allocation.USAGE_SCRIPT
+        );
+        // Create another allocation (with the same type and dimensions as allocationIn) to be used
+        // as a source to update the outputBitmap.
+        allocationOut = Allocation.createTyped(mRS, allocationIn.getType());
+        // Starting Android API level 18 and higher, you can create the allocationOut directly from the
+        // Bitmap via CreateFromBitmap()
+        // Use the dedicated USAGE_SHARED flag, as with this flag copying to or from the bitmap
+        // causes a synchronization rather than a full copy.
+        // Also use syncAll(USAGE_SHARED) to synchronize the Allocation and the source Bitmap
+        // rather than the current copyTo, refer to the stepRenderScript method
+        // Notice that you would need to use a second allocation (and swap them similarly to bitmaps)
+
+        int imageWidth = inputBitmap.getWidth();
+        int imageHeight = inputBitmap.getHeight();
+        // Two bitmap objects for the simple double-buffering scheme, where first bitmap object is rendered,
+        // while the second one is being updated, then vice versa.
+        outputBitmap = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+        outputBitmapStage = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+    }
+
     private void startBackgroundThread() {
         // Create a thread that periodically calls the filter method of this activity.
         backgroundThread = new Thread(new Runnable() {
@@ -207,58 +316,50 @@ public class ImagePressActivity extends ActionBarActivity {
                     // Guard for flip-flopping the buffers so that the GUI thread does not try displaying a
                     // not updated bitmap object.
                     isRendering.block();
-                    {
-                        // If you need to update the image, it is a good place (in a dedicated thread) -
-                        // in a synchronized way.
-                        if (newBitmapPath != null) {
-                            loadInputImage(newBitmapPath);
-                            newBitmapPath = null;
+                    // If you need to update the image, it is a good place (in a dedicated thread) -
+                    // in a synchronized way.
+                    if (newBitmapPath != null) {
+                        loadInputImage(newBitmapPath);
+                        newBitmapPath = null;
 
-                        }
-
-                        Log.i("AndroidBasic", "beforeStep");
-                        {
-                            // Swap target and staging bitmap objects.
-                            Bitmap t = outputBitmap;
-                            outputBitmap = outputBitmapStage;
-                            outputBitmapStage = t;
-                        }
-
-                        stepStart = System.nanoTime();
-                        step();
-                        stepEnd = System.nanoTime();
-
-                        Log.i("AndroidBasic", "afterStep");
-                        // Prevent the background thread from computing next frame to the same bitmap object.
-                        isRendering.close();
-                        outputImageView.post
-                                (
-                                        new Runnable() {
-                                            public void run() {
-                                                {
-                                                    // Snapshot of the touch-event parameters that should be applied
-                                                    // until a new touch event happens.
-                                                    // In the GUI thread copy parameters into a separated variables
-                                                    // to guarantee the parameters are changed "atomically"
-                                                    // (simultaneously) for the worker thread.
-                                                    xTouchApply = xTouchUI;
-                                                    yTouchApply = yTouchUI;
-                                                    stepTouchApply = stepTouchUI;
-
-                                                    // Update the performance statistics.
-                                                    updatePerformanceStats();
-
-
-                                                    Log.i("AndroidBasic", "setImageBitmap and invalidate");
-                                                    outputImageView.setImageBitmap(outputBitmap);
-                                                    outputImageView.invalidate();
-                                                }
-                                                // Enable the background thread to compute the next frame.
-                                                isRendering.open();
-                                            }
-                                        }
-                                );
                     }
+
+                    Log.i("AndroidBasic", "beforeStep");
+                    // Swap target and staging bitmap objects.
+                    Bitmap t = outputBitmap;
+                    outputBitmap = outputBitmapStage;
+                    outputBitmapStage = t;
+
+                    stepStart = System.nanoTime();
+                    step();
+                    stepEnd = System.nanoTime();
+
+                    Log.i("AndroidBasic", "afterStep");
+                    // Prevent the background thread from computing next frame to the same bitmap object.
+                    isRendering.close();
+                    outputImageView.post(new Runnable() {
+                                             public void run() {
+                                                 // Snapshot of the touch-event parameters that should be applied
+                                                 // until a new touch event happens.
+                                                 // In the GUI thread copy parameters into a separated variables
+                                                 // to guarantee the parameters are changed "atomically"
+                                                 // (simultaneously) for the worker thread.
+                                                 xTouchApply = xTouchUI;
+                                                 yTouchApply = yTouchUI;
+                                                 stepTouchApply = stepTouchUI;
+
+                                                 // Update the performance statistics.
+                                                 updatePerformanceStats();
+
+
+                                                 Log.i("AndroidBasic", "setImageBitmap and invalidate");
+                                                 outputImageView.setImageBitmap(outputBitmap);
+                                                 outputImageView.invalidate();
+                                                 // Enable the background thread to compute the next frame.
+                                                 isRendering.open();
+                                             }
+                                         }
+                    );
                 }
                 Log.i("AndroidBasic", "Exiting backgroundThread");
             }
@@ -303,147 +404,49 @@ public class ImagePressActivity extends ActionBarActivity {
         stepCount++;
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Unleash the "worker" thread.
-        isGoing.open();
-        Log.i("AndroidBasic", "onStart");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        // Stop the background filtering thread.
-        isGoing.close();
-        Log.i("AndroidBasic", "onStop");
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-
-        Log.i("AndroidBasic", "onWindowFocusChanged");
-        // When the application is restarted, which means the inputBitmap doesn't exist,
-        // load inputBitmap first and (re)start the worker thread.
-        // If the inputBitmap already exists, the application is likely to resume from the minimized state.
-        if (inputBitmap == null) {
-            String fromResources = null;
-            loadInputImage(fromResources);
-            startBackgroundThread();
-        }
-    }
-
-    private void loadInputImage(String path) {
-        // To avoid potential issues with loading big images, scale the input image to fit the output view.
-        // Obtain the actual dimensions from the outputImageView.
-        int displayWidth = outputImageView.getWidth();
-        int displayHeight = outputImageView.getHeight();
-        if (Build.FINGERPRINT.startsWith("generic")) //emulator, we are very memory limited
-        {
-            displayWidth /= 2;
-            displayHeight /= 2;
-        }
-
-        Log.i("AndroidBasic", "display dimensions: " + displayWidth + ", " + displayHeight);
-
-        // Obtain the original dimensions of the input picture from resources.
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;    // This avoids the decoding itself and reads the image statistics.
-
-        if (path == null) {
-            BitmapFactory.decodeResource(getResources(), R.drawable.picture, options);
-        } else {
-            BitmapFactory.decodeFile(path, options);
-        }
-
-        int origWidth = options.outWidth;
-        int origHeight = options.outHeight;
-
-        // According to the display and the original dimensions, calculate the scale factor that reduces
-        // the amount of memory needed to store an image, and, at the same time, is not too high to avoid
-        // significant image quality loss.
-        options.inSampleSize = Math.min(origWidth / displayWidth, origHeight / displayHeight);
-
-        // Now decode the real picture content with scaling.
-        options.inJustDecodeBounds = false;
-        if (path == null) {
-            inputBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.picture, options);
-        } else {
-            inputBitmap = BitmapFactory.decodeFile(path, options);
-        }
-
-        inputBitmap = Bitmap.createScaledBitmap(inputBitmap, displayWidth, displayHeight, false);
-
-        // Create an allocation (which is memory abstraction in the RenderScript)
-        // that corresponds to the imputBitmap.
-        allocationIn = Allocation.createFromBitmap(
-                rs,
-                inputBitmap,
-                Allocation.MipmapControl.MIPMAP_NONE,
-                Allocation.USAGE_SCRIPT
-        );
-        // Create another allocation (with the same type and dimensions as allocationIn) to be used
-        // as a source to update the outputBitmap.
-        allocationOut = Allocation.createTyped(rs, allocationIn.getType());
-        // Starting Android API level 18 and higher, you can create the allocationOut directly from the
-        // Bitmap via CreateFromBitmap()
-        // Use the dedicated USAGE_SHARED flag, as with this flag copying to or from the bitmap
-        // causes a synchronization rather than a full copy.
-        // Also use syncAll(USAGE_SHARED) to synchronize the Allocation and the source Bitmap
-        // rather than the current copyTo, refer to the stepRenderScript method
-        // Notice that you would need to use a second allocation (and swap them similarly to bitmaps)
-
-        int imageWidth = inputBitmap.getWidth();
-        int imageHeight = inputBitmap.getHeight();
-        // Two bitmap objects for the simple double-buffering scheme, where first bitmap object is rendered,
-        // while the second one is being updated, then vice versa.
-        outputBitmap = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
-        outputBitmapStage = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        xTouchUI = (int) (event.getX());
-        yTouchUI = (int) (event.getY());
-
-        stepTouchUI = stepCount;
-
-        Log.i("AndroidBasic", "x = " + event.getX() + ", y = " + event.getY());
-        return super.onTouchEvent(event);
-    }
-
-
     private void stepRenderScript() {
+        if (mScript == null || mRS == null) {
+            return;
+        }
         // Compute the parameters (for example, the "circle of effect") depending on the number of the
         // elapsed steps.
         int radius = (stepTouchApply == -1 ? -1 : 10 * (stepCount - stepTouchApply));
         int radiusHi = (radius + 2) * (radius + 2);
         int radiusLo = (radius - 2) * (radius - 2);
-        // Setting parameters for the script.
-        script.set_radiusHi(radiusHi);
-        script.set_radiusLo(radiusLo);
-        script.set_xTouchApply(xTouchApply);
-        script.set_yTouchApply(yTouchApply);
+        // Setting parameters for the mScript.
+        mScript.set_radiusHi(radiusHi);
+        mScript.set_radiusLo(radiusLo);
+        mScript.set_xTouchApply(xTouchApply);
+        mScript.set_yTouchApply(yTouchApply);
 
-        // Run the script.
-        script.forEach_root(allocationIn, allocationOut);
+        // Run the mScript.
+        mScript.forEach_root(allocationIn, allocationOut);
         // For the API level 17 and earlier: explicit copy of results to the output bitmap for displaying
         allocationOut.copyTo(outputBitmap);
         // For the API level 18 and higher notice that you would
         // need another allocation to match outBitmapStage and swap the allocations similarly to bitmaps
         // (search for the "beforeStep" string in the code)
         //Wait for completion
-        //rs.finish();
+        //mRS.finish();
         // Let the bitmap know the results
         //allocationOut.syncAll(Allocation.USAGE_SHARED);
 
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            xTouchUI = (int) (event.getX());
+            yTouchUI = (int) (event.getY());
+
+            stepTouchUI = stepCount;
+            Log.i("AndroidBasic", "x = " + event.getX() + ", y = " + event.getY());
+        }
+
+        return super.onTouchEvent(event);
+    }
+
     private void resetTouch() {
         stepTouchUI = stepTouchApply = -1;
     }
-
 }
