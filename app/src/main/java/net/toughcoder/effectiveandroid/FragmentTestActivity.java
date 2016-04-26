@@ -4,11 +4,8 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
-
-import net.toughcoder.effectiveandroid.R;
 
 /**
  * Created by alexhilton on 15/4/29.
