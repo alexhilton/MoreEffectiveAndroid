@@ -20,6 +20,7 @@ import net.toughcoder.ViewServer;
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
 import net.toughcoder.rs.ImagePressActivity;
+import net.toughcoder.rs.GrayScalifyImageActivity;
 import net.toughcoder.rs.RSYUV2RGBAActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
@@ -56,6 +57,7 @@ public class MainActivity extends ActionBarActivity {
         sActivityList.put("Bitmap Blur", BitmapBlurTestActivity.class);
         sActivityList.put("RS YUV to RGBA", RSYUV2RGBAActivity.class);
         sActivityList.put("RS Image Press", ImagePressActivity.class);
+        sActivityList.put("RS Grayscale", GrayScalifyImageActivity.class);
     }
 
     @Override
