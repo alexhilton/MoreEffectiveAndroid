@@ -1,3 +1,10 @@
+/*
+ * This is based on Intel RenderScript Example
+ * https://software.intel.com/en-us/articles/renderscript-basic-sample-for-android-os
+ * The original author owns the Copyright.
+ * Please contact original author for license.
+ */
+
 package net.toughcoder.rs;
 
 import android.content.Intent;
@@ -5,7 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.ConditionVariable;
 import android.os.Environment;
