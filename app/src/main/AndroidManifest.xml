@@ -85,8 +85,11 @@
         <activity
             android:name="net.toughcoder.rs.ImagePressActivity"
             android:label="@string/title_activity_image_press"/>
-        <activity android:name="net.toughcoder.rs.GrayScalifyImageActivity"
+        <activity
+            android:name="net.toughcoder.rs.GrayScalifyImageActivity"
             android:label="Julia RenderScript">
+        </activity>
+        <activity android:name="net.toughcoder.camera.CameraExampleListActivity">
         </activity>
     </application>
 

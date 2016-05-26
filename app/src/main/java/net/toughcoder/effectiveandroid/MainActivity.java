@@ -17,10 +17,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import net.toughcoder.ViewServer;
+import net.toughcoder.camera.CameraExampleListActivity;
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
-import net.toughcoder.rs.ImagePressActivity;
 import net.toughcoder.rs.GrayScalifyImageActivity;
+import net.toughcoder.rs.ImagePressActivity;
 import net.toughcoder.rs.RSYUV2RGBAActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
@@ -28,7 +29,6 @@ import net.toughcoder.widget.BitmapBlurTestActivity;
 import net.toughcoder.widget.GridLayoutExampleActivity;
 import net.toughcoder.widget.RecyclerViewExampleActivity;
 import net.toughcoder.widget.SurfaceExampleActivity;
-import net.toughcoder.widget.TextureViewActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,14 +50,13 @@ public class MainActivity extends ActionBarActivity {
         sActivityList.put("Recycler View", RecyclerViewExampleActivity.class);
         sActivityList.put("Keyboard Aware", KeyboardAwareActivity.class);
         sActivityList.put("GridLayout Example", GridLayoutExampleActivity.class);
-        sActivityList.put("Camera Preview", CameraPreviewActivity.class);
-        sActivityList.put("TextureView", TextureViewActivity.class);
         sActivityList.put("Surface Example", SurfaceExampleActivity.class);
         sActivityList.put("Alpha OpenGL", AlphaOpenGLActivity.class);
         sActivityList.put("Bitmap Blur", BitmapBlurTestActivity.class);
         sActivityList.put("RS YUV to RGBA", RSYUV2RGBAActivity.class);
         sActivityList.put("RS Image Press", ImagePressActivity.class);
         sActivityList.put("RS Grayscale", GrayScalifyImageActivity.class);
+        sActivityList.put("Camera Examples", CameraExampleListActivity.class);
     }
 
     @Override
