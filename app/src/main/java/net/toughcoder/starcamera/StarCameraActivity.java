@@ -13,6 +13,7 @@ import net.toughcoder.opengl2s.SimpleRenderer;
  * Created by alexhilton on 15/8/4.
  */
 public class StarCameraActivity extends Activity {
+    private static final String TAG = "Camera start OpenGL";
     private StarCameraRender mRender;
     private Handler mHandler;
     private GLSurfaceView view;
@@ -20,6 +21,7 @@ public class StarCameraActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         final int width = getResources().getDisplayMetrics().widthPixels;
         view = new GLSurfaceView(this);
         ViewGroup.LayoutParams lp =

@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class ImagePressActivity extends ActionBarActivity {
+    private static final String TAG = "Press to gray image";
     // Input bitmap object, serves as a single source for the image-processing kernel.
     private Bitmap inputBitmap;
     // Output bitmap object, serves as a destination for the image-processing kernel.
@@ -122,6 +123,7 @@ public class ImagePressActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_image_press);
         outputImageView = (ImageView) findViewById(R.id.outputImageView);
         FPSLabel = (TextView) findViewById(R.id.FPS);

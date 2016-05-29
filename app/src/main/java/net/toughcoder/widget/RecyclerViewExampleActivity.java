@@ -16,7 +16,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,7 +26,6 @@ import android.widget.ImageView;
 
 import net.toughcoder.effectiveandroid.R;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +33,7 @@ import java.util.List;
  * Created by alexhilton on 15/8/15.
  */
 public class RecyclerViewExampleActivity extends Activity {
+    private static final String TAG = "RecyclerView example";
     private RecyclerView mRecylerView;
 
     private ShowType mShowType;
@@ -44,6 +43,7 @@ public class RecyclerViewExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.recycler_view_example);
         ImageLoader.getInstance().init(getApplication());
         mImages = null;

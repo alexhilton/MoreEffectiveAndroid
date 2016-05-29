@@ -29,6 +29,7 @@ public class CameraPreviewActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_camera_preview);
         mSurfaceView = (SurfaceView) findViewById(R.id.preview_display);
         SurfaceHolder holder = mSurfaceView.getHolder();

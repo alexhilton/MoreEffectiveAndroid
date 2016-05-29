@@ -17,6 +17,7 @@ public class FragmentTestActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.fragment_test);
         Fragment frag = getFragmentManager().findFragmentById(R.id.blank_fragment);
         Log.e(TAG, "frag " + frag);

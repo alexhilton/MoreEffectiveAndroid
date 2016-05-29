@@ -11,6 +11,7 @@ public class ScrollLinearLayoutActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_scroll_linear_layout);
     }
 

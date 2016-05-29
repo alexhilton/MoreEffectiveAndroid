@@ -12,11 +12,13 @@ import android.view.SurfaceView;
 import net.toughcoder.effectiveandroid.R;
 
 public class SurfaceExampleActivity extends ActionBarActivity implements SurfaceHolder.Callback {
+    private static final String TAG = "SurfaceView with transparency example";
     private SurfaceView mSurfaceView;
     private Paint mPaint;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_surface_example);
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         mSurfaceView.getHolder().addCallback(this);

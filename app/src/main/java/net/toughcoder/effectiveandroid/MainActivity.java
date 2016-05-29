@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
@@ -27,6 +28,12 @@ import java.util.List;
 
 public class MainActivity extends ExampleListActivity {
     private static final String TAG = "Effective Android";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setTitle(TAG);
+    }
 
     @Override
     protected List<Class> getActivityList() {

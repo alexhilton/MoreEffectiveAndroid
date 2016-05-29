@@ -23,10 +23,12 @@ import java.util.List;
  * Created by alexhilton on 15/7/21.
  */
 public class ShareWeixinActivity extends Activity {
+    private static final String TAG = "Share to weixin example";
     private Uri mUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.share_weixin_activity);
         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String filepath = "1234";

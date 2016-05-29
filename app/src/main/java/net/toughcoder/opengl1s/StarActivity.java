@@ -13,7 +13,6 @@ import net.toughcoder.effectiveandroid.R;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Random;
 
@@ -24,6 +23,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by alexhilton on 15/7/16.
  */
 public class StarActivity extends Activity {
+    private static final String TAG = "OpenGL Stars example";
 
     private GLSurfaceView glSurfaceView;
     private StarRenderer renderer;
@@ -31,6 +31,7 @@ public class StarActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         Load.loadBitmap(getResources());
         renderer = new StarRenderer();
         glSurfaceView = new GLSurfaceView(this);

@@ -17,11 +17,13 @@ import android.widget.Toast;
  * Created by alexhilton on 15/10/9.
  */
 public class KeyboardAwareActivity extends Activity {
+    private static final String TAG = "Keyboard aware example";
     private boolean mKeyboardUp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         mKeyboardUp = false;
         setContentView(R.layout.keyboard_aware_activity);
 
