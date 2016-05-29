@@ -1,15 +1,13 @@
 package net.toughcoder.effectiveandroid;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import net.toughcoder.effectiveandroid.R;
-
 
 public class DrawableLabelActivity extends ActionBarActivity {
-
+    private static String TAG = "Drawable attribute of TextView";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

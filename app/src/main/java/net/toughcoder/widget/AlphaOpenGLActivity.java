@@ -18,11 +18,13 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class AlphaOpenGLActivity extends ActionBarActivity {
+    private static String TAG = "OpenGL with transparency";
     private GLSurfaceView mGLSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_alpha_open_gl);
         mGLSurfaceView = (GLSurfaceView) findViewById(R.id.alpha_glview);
         mGLSurfaceView.setEGLContextClientVersion(2);

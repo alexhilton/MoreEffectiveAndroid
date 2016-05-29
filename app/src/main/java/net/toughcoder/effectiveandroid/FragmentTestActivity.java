@@ -12,7 +12,7 @@ import android.view.View;
  */
 
 public class FragmentTestActivity extends Activity {
-    public static final String TAG = "FragmentTestActivity";
+    public static final String TAG = "Fragment test";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

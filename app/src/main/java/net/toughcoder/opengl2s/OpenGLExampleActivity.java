@@ -2,21 +2,19 @@ package net.toughcoder.opengl2s;
 
 import android.graphics.Color;
 import android.opengl.GLSurfaceView;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import net.toughcoder.effectiveandroid.R;
-import net.toughcoder.oaqs.AirHockeyRenderer;
 
 public class OpenGLExampleActivity extends ActionBarActivity {
+    private static String TAG = "Simple OpenGL";
     private GLSurfaceView mGLView;
     private Handler mHandler;
 

@@ -1,4 +1,4 @@
-package net.toughcoder.effectiveandroid;
+package net.toughcoder.camera;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -15,9 +15,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 
+import net.toughcoder.effectiveandroid.R;
+
 import java.io.ByteArrayOutputStream;
 
 public class CameraPreviewActivity extends Activity {
+    private static String TAG = "Preview with SurfaceView";
     private Camera mCamera;
     private int mIndex;
     private SurfaceView mSurfaceView;

@@ -31,6 +31,7 @@ import java.io.IOException;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class RSYUV2RGBAActivity extends ActionBarActivity implements Camera.PreviewCallback {
+    private static String TAG = "Convert YUV to RGBA";
     private ImageView mImageView;
     private Button mSnapshot;
     private Camera mCamera;
@@ -43,6 +44,7 @@ public class RSYUV2RGBAActivity extends ActionBarActivity implements Camera.Prev
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_rsyuv2_rgba);
         mRS = RenderScript.create(this);
         mImageView = (ImageView) findViewById(R.id.imageview);

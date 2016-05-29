@@ -4,82 +4,47 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
-import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 
 import net.toughcoder.ViewServer;
 import net.toughcoder.camera.CameraExampleListActivity;
 import net.toughcoder.opengl1s.StarActivity;
 import net.toughcoder.opengl2s.OpenGLExampleActivity;
-import net.toughcoder.rs.GrayScalifyImageActivity;
-import net.toughcoder.rs.ImagePressActivity;
-import net.toughcoder.rs.RSYUV2RGBAActivity;
+import net.toughcoder.rs.RSExampleListActivity;
 import net.toughcoder.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
-import net.toughcoder.widget.BitmapBlurTestActivity;
 import net.toughcoder.widget.GridLayoutExampleActivity;
 import net.toughcoder.widget.RecyclerViewExampleActivity;
 import net.toughcoder.widget.SurfaceExampleActivity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 
-public class MainActivity extends ActionBarActivity {
-    public static final String TAG = "MainActivity";
-    private static HashMap<String, Class> sActivityList = new LinkedHashMap<>();
-    static {
-        sActivityList.put("Fragment Test", FragmentTestActivity.class);
-        sActivityList.put("Scroll LinearLayout", ScrollLinearLayoutActivity.class);
-        sActivityList.put("Drawable Label", DrawableLabelActivity.class);
-        sActivityList.put("OpenGL Example", OpenGLExampleActivity.class);
-        sActivityList.put("Stars Example", StarActivity.class);
-        sActivityList.put("Camera with Star", StarCameraActivity.class);
-        sActivityList.put("Recycler View", RecyclerViewExampleActivity.class);
-        sActivityList.put("Keyboard Aware", KeyboardAwareActivity.class);
-        sActivityList.put("GridLayout Example", GridLayoutExampleActivity.class);
-        sActivityList.put("Surface Example", SurfaceExampleActivity.class);
-        sActivityList.put("Alpha OpenGL", AlphaOpenGLActivity.class);
-        sActivityList.put("Bitmap Blur", BitmapBlurTestActivity.class);
-        sActivityList.put("RS YUV to RGBA", RSYUV2RGBAActivity.class);
-        sActivityList.put("RS Image Press", ImagePressActivity.class);
-        sActivityList.put("RS Grayscale", GrayScalifyImageActivity.class);
-        sActivityList.put("Camera Examples", CameraExampleListActivity.class);
-    }
+public class MainActivity extends ExampleListActivity {
+    private static final String TAG = "Effective Android";
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        LinearLayout list = (LinearLayout) findViewById(R.id.activity_list);
-        final LayoutInflater factory = LayoutInflater.from(this);
-        for (Map.Entry<String, Class> entry : sActivityList.entrySet()) {
-            final String label = entry.getKey();
-            final Class activity = entry.getValue();
-            Button btn = (Button) factory.inflate(R.layout.activity_list_item, list, false);
-            btn.setText(label);
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent i = new Intent(getApplicationContext(), activity);
-                    startActivity(i);
-                }
-            });
-            list.addView(btn);
-        }
-        ViewServer.get(this).addWindow(this);
+    protected List<Class> getActivityList() {
+        List<Class> list = new LinkedList<>();
+        list.add(FragmentTestActivity.class);
+        list.add(ScrollLinearLayoutActivity.class);
+        list.add(DrawableLabelActivity.class);
+        list.add(OpenGLExampleActivity.class);
+        list.add(StarActivity.class);
+        list.add(StarCameraActivity.class);
+        list.add(RecyclerViewExampleActivity.class);
+        list.add(KeyboardAwareActivity.class);
+        list.add(GridLayoutExampleActivity.class);
+        list.add(SurfaceExampleActivity.class);
+        list.add(AlphaOpenGLActivity.class);
+        list.add(RSExampleListActivity.class);
+        list.add(CameraExampleListActivity.class);
+        return list;
     }
 
     @Override

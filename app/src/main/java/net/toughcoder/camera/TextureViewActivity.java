@@ -1,4 +1,4 @@
-package net.toughcoder.widget;
+package net.toughcoder.camera;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -15,6 +15,7 @@ import java.io.IOException;
  * Created by alexhilton on 16/3/23.
  */
 public class TextureViewActivity extends Activity implements TextureView.SurfaceTextureListener {
+    private static String TAG = "Preview with TextureView";
     private TextureView myTexture;
     private Camera mCamera;
 
@@ -22,7 +23,7 @@ public class TextureViewActivity extends Activity implements TextureView.Surface
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setTitle(TAG);
         myTexture = new TextureView(this);
         myTexture.setSurfaceTextureListener(this);
         setContentView(myTexture);

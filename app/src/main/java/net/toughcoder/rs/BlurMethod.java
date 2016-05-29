@@ -1,4 +1,4 @@
-package net.toughcoder.widget;
+package net.toughcoder.rs;
 
 import android.graphics.Bitmap;
 import android.support.v8.renderscript.Allocation;

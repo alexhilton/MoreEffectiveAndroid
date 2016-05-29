@@ -1,47 +1,27 @@
 package net.toughcoder.camera;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 
-import net.toughcoder.effectiveandroid.CameraPreviewActivity;
-import net.toughcoder.effectiveandroid.R;
-import net.toughcoder.widget.TextureViewActivity;
+import net.toughcoder.effectiveandroid.ExampleListActivity;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
-public class CameraExampleListActivity extends ActionBarActivity {
-    private static HashMap<String, Class> sActivityList = new LinkedHashMap<>();
-    static {
-        sActivityList.put("Camera Preview", CameraPreviewActivity.class);
-        sActivityList.put("TextureView", TextureViewActivity.class);
-    }
+public class CameraExampleListActivity extends ExampleListActivity {
+    private static String TAG = "Camera Example List";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera_example_list);
-        LinearLayout list = (LinearLayout) findViewById(R.id.activity_list);
-        final LayoutInflater factory = LayoutInflater.from(this);
-        for (Map.Entry<String, Class> entry : sActivityList.entrySet()) {
-            final String label = entry.getKey();
-            final Class activity = entry.getValue();
-            Button btn = (Button) factory.inflate(R.layout.activity_list_item, list, false);
-            btn.setText(label);
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent i = new Intent(getApplicationContext(), activity);
-                    startActivity(i);
-                }
-            });
-            list.addView(btn);
-        }
+        setTitle(TAG);
+    }
+
+    @Override
+    protected List<Class> getActivityList() {
+        List<Class> sActivityList = new LinkedList<>();
+        sActivityList.add(CameraPreviewActivity.class);
+        sActivityList.add(TextureViewActivity.class);
+        sActivityList.add(OpenGLPreviewActivity.class);
+        return sActivityList;
     }
 }

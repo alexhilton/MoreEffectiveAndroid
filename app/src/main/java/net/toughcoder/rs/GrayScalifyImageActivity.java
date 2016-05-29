@@ -14,6 +14,7 @@ import net.toughcoder.effectiveandroid.R;
 import net.toughcoder.effectiveandroid.ScriptC_grayscale;
 
 public class GrayScalifyImageActivity extends ActionBarActivity {
+    private static String TAG = "Gray scale bitmap";
     private Bitmap mBitmap;
     private Bitmap mGrayBitmap;
     private ImageView mDisplay;
@@ -29,6 +30,7 @@ public class GrayScalifyImageActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         setContentView(R.layout.activity_grayscale);
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();

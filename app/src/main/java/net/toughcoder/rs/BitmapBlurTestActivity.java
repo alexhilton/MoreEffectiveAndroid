@@ -1,4 +1,4 @@
-package net.toughcoder.widget;
+package net.toughcoder.rs;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import net.toughcoder.effectiveandroid.R;
 
 public class BitmapBlurTestActivity extends ActionBarActivity {
+    private static String TAG = "Bitmap fast blur";
     private ImageSwitcher mImageSwitcher;
     private Handler mMainHandler;
     private RenderScript mRS;
@@ -23,6 +24,7 @@ public class BitmapBlurTestActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(TAG);
         mMainHandler = new Handler();
         setContentView(R.layout.activity_bitmap_blur_test);
         mImageSwitcher = (ImageSwitcher) findViewById(R.id.imageswitcher);
