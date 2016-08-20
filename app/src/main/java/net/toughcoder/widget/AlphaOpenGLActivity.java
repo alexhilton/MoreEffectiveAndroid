@@ -8,7 +8,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 
 import net.toughcoder.effectiveandroid.R;
-import net.toughcoder.oaqs.ShaderHelper;
+import net.toughcoder.opengl.oaqs.ShaderHelper;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

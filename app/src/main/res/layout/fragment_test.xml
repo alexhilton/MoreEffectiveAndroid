@@ -13,7 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="1"
-            class="net.toughcoder.effectiveandroid.BlankFragment"/>
+            class="net.toughcoder.miscellaneous.BlankFragment"/>
         <Button
             android:id="@+id/another"
             android:layout_width="match_parent"

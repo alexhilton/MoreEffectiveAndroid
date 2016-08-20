@@ -2,7 +2,7 @@ package net.toughcoder.camera;
 
 import android.os.Bundle;
 
-import net.toughcoder.effectiveandroid.ExampleListActivity;
+import net.toughcoder.miscellaneous.ExampleListActivity;
 
 import java.util.LinkedList;
 import java.util.List;

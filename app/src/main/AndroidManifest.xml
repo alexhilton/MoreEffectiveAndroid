@@ -18,7 +18,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="net.toughcoder.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -27,26 +27,26 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ScrollLinearLayoutActivity"
+            android:name="net.toughcoder.miscellaneous.ScrollLinearLayoutActivity"
             android:label="@string/title_activity_scroll_linear_layout"/>
         <activity
-            android:name=".FragmentTestActivity"
+            android:name="net.toughcoder.miscellaneous.FragmentTestActivity"
             android:label="Fragement test"/>
         <activity
-            android:name=".DrawableLabelActivity"
+            android:name="net.toughcoder.miscellaneous.DrawableLabelActivity"
             android:label="@string/title_activity_drawable_label"/>
         <activity
-            android:name="net.toughcoder.opengl2s.OpenGLExampleActivity"
+            android:name="net.toughcoder.opengl.opengl2s.OpenGLExampleActivity"
             android:label="@string/title_activity_open_glexample"/>
         <activity
-            android:name="net.toughcoder.opengl1s.StarActivity"
+            android:name="net.toughcoder.opengl.opengl1s.StarActivity"
             android:label="Star Activity"/>
         <activity
-            android:name=".ShareWeixinActivity"
+            android:name="net.toughcoder.miscellaneous.ShareWeixinActivity"
             android:label="Share Weixin"
             android:theme="@android:style/Theme.Holo"/>
         <activity
-            android:name="net.toughcoder.starcamera.StarCameraActivity"
+            android:name="net.toughcoder.opengl.starcamera.StarCameraActivity"
             android:label="Star Camera"
             android:theme="@android:style/Theme.Holo"/>
         <activity
@@ -54,7 +54,7 @@
             android:label="RecyclerView Example"
             android:theme="@android:style/Theme.Holo"/>
         <activity
-            android:name=".KeyboardAwareActivity"
+            android:name="net.toughcoder.miscellaneous.KeyboardAwareActivity"
             android:label="Keyboard aware example"
             android:theme="@android:style/Theme.Holo"
             android:windowSoftInputMode="adjustPan"/>
