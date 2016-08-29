@@ -97,6 +97,8 @@
         </activity>
         <activity android:name="net.toughcoder.opengl.OpenGLESExampleListActivity">
         </activity>
+        <activity android:name="net.toughcoder.animation.AnimationExampleListActivity">
+        </activity>
     </application>
 
 </manifest>

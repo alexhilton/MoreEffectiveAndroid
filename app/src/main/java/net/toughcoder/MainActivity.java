@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.toughcoder.animation.AnimationExampleListActivity;
 import net.toughcoder.camera.CameraExampleListActivity;
 import net.toughcoder.effectiveandroid.R;
 import net.toughcoder.miscellaneous.DrawableLabelActivity;
@@ -50,6 +51,7 @@ public class MainActivity extends ExampleListActivity {
         list.add(OpenGLESExampleListActivity.class);
         list.add(RSExampleListActivity.class);
         list.add(CameraExampleListActivity.class);
+        list.add(AnimationExampleListActivity.class);
         return list;
     }
 
