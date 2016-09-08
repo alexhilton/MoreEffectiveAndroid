@@ -99,6 +99,8 @@
         </activity>
         <activity android:name="net.toughcoder.animation.AnimationExampleListActivity">
         </activity>
+        <activity android:name="net.toughcoder.animation.AnimationAnatomyActivity">
+        </activity>
     </application>
 
 </manifest>

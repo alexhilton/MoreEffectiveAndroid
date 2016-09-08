@@ -19,6 +19,7 @@ public class AnimationExampleListActivity extends ExampleListActivity {
     @Override
     protected List<Class> getActivityList() {
         List<Class> clazzes = new ArrayList<>();
+        clazzes.add(AnimationAnatomyActivity.class);
         return clazzes;
     }
 }
