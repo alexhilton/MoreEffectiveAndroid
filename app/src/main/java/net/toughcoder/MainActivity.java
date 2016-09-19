@@ -15,6 +15,7 @@ import net.toughcoder.camera.CameraExampleListActivity;
 import net.toughcoder.effectiveandroid.R;
 import net.toughcoder.miscellaneous.DrawableLabelActivity;
 import net.toughcoder.miscellaneous.ExampleListActivity;
+import net.toughcoder.miscellaneous.FragmentStateLossActivity;
 import net.toughcoder.miscellaneous.FragmentTestActivity;
 import net.toughcoder.miscellaneous.KeyboardAwareActivity;
 import net.toughcoder.miscellaneous.ScrollLinearLayoutActivity;
@@ -52,6 +53,7 @@ public class MainActivity extends ExampleListActivity {
         list.add(RSExampleListActivity.class);
         list.add(CameraExampleListActivity.class);
         list.add(AnimationExampleListActivity.class);
+        list.add(FragmentStateLossActivity.class);
         return list;
     }
 
