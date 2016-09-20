@@ -1,15 +1,19 @@
 package net.toughcoder.miscellaneous;
 
+import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 
 import net.toughcoder.effectiveandroid.R;
 
-public class FragmentStateLossActivity extends ActionBarActivity {
+/*
+ * State loss exception will be thrown if onBackPressed executed after onSaveInstanceState or onStop only for
+ * FragmentActivity in support-v4. Standard Activity does not have such issue.
+ */
+public class FragmentStateLossActivity extends Activity {
     private static final String TAG = "Fragment state loss";
     private boolean mStateSaved;
 
@@ -26,7 +30,7 @@ public class FragmentStateLossActivity extends ActionBarActivity {
         // Not call super won't help us, still get crash
         super.onSaveInstanceState(outState);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            mStateSaved = true;
+//            mStateSaved = true;
         }
         Log.e(TAG, "onSaveInstanceState. finishing " + isFinishing());
     }
@@ -47,7 +51,7 @@ public class FragmentStateLossActivity extends ActionBarActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        mStateSaved = true;
+//        mStateSaved = true;
         Log.e(TAG, "onStop. finishing " + isFinishing());
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -73,18 +77,18 @@ public class FragmentStateLossActivity extends ActionBarActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.e(TAG, "keycode " + keyCode + ", event " + event);
-        if (!mStateSaved) {
-            return super.onKeyDown(keyCode, event);
-        } else {
-            // State already saved, so ignore the event
-            return true;
-        }
+        return super.onKeyDown(keyCode, event);
+//        if (!mStateSaved) {
+//        } else {
+//            // State already saved, so ignore the event
+//            return true;
+//        }
     }
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         if (!mStateSaved) {
-            super.onBackPressed();
         }
         Log.e(TAG, "onBackPressed. finishing " + isFinishing());
     }
