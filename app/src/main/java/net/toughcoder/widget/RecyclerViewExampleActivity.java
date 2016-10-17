@@ -2,11 +2,13 @@ package net.toughcoder.widget;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -203,6 +205,12 @@ public class RecyclerViewExampleActivity extends Activity {
             final ImageItem item = mImages.get(position);
             holder.mThumbnail.setImageBitmap(null);
             holder.mThumbnail.setTag(item);
+            holder.mThumbnail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    jumpToPailitao(mContext, item.getPath());
+                }
+            });
             item.setMetrics(lp.width, lp.height);
             ImageLoader.getInstance().getBitmap(holder.mThumbnail, item, new ImageLoader.LoadedCallback() {
                 @Override
@@ -213,6 +221,7 @@ public class RecyclerViewExampleActivity extends Activity {
                 }
             });
         }
+
 
         @Override
         public int getItemCount() {
@@ -389,5 +398,13 @@ public class RecyclerViewExampleActivity extends Activity {
 
             return false;
         }
+    }
+
+    public static void jumpToPailitao(Context ctx, String path) {
+        Intent i = new Intent("productsearch");
+        i.setDataAndType(Uri.parse(path), "image/jpeg");
+        i.addCategory(Intent.CATEGORY_DEFAULT);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        ctx.startActivity(i);
     }
 }

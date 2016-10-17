@@ -33,6 +33,10 @@ class ImageItem {
         return mPath + mTargetWidth + mTargetHeight;
     }
 
+    public String getPath() {
+        return mPath;
+    }
+
     public void setMetrics(int width, int height) {
         mTargetHeight = height;
         mTargetWidth = width;

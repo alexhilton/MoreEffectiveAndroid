@@ -48,9 +48,9 @@ public class ObjectBuilder {
 
         for (int i = 0; i <= numPoints; i++) {
             float angleInRadius = ((float) i / (float) numPoints) * ((float) Math.PI * 2f);
-            vertexData[offset++] = circle.center.x + circle.radius * FloatMath.cos(angleInRadius);
+            vertexData[offset++] = (float) (circle.center.x + circle.radius * Math.cos(angleInRadius));
             vertexData[offset++] = circle.center.y;
-            vertexData[offset++] = circle.center.z + circle.radius * FloatMath.sin(angleInRadius);
+            vertexData[offset++] = (float) (circle.center.z + circle.radius * Math.sin(angleInRadius));
         }
 
         drawList.add(new DrawCommand() {
@@ -69,8 +69,8 @@ public class ObjectBuilder {
 
         for (int i = 0; i <= numPoints; i++) {
             float angle = ((float) i / (float) numPoints) * ((float) Math.PI * 2f);
-            float xPosition = cylinder.center.x + cylinder.radius * FloatMath.cos(angle);
-            float zPosition = cylinder.center.z + cylinder.radius * FloatMath.sin(angle);
+            float xPosition = (float) (cylinder.center.x + cylinder.radius * Math.cos(angle));
+            float zPosition = (float) (cylinder.center.z + cylinder.radius * Math.sin(angle));
 
             vertexData[offset++] = xPosition;
             vertexData[offset++] = yStart;

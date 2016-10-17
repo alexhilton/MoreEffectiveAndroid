@@ -1,7 +1,5 @@
 package net.toughcoder.opengl.oaqs;
 
-import android.util.FloatMath;
-
 /**
  * Created by alexhilton on 15/7/5.
  */
@@ -25,7 +23,7 @@ public class Geometry {
         }
 
         public float length() {
-            return FloatMath.sqrt(x * x + y * y + z * z);
+            return (float) Math.sqrt(x * x + y * y + z * z);
         }
 
         public Vector crossProduct(Vector other) {

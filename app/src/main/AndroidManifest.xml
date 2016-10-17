@@ -103,6 +103,8 @@
         </activity>
         <activity android:name="net.toughcoder.miscellaneous.FragmentStateLossActivity">
         </activity>
+        <activity android:name="net.toughcoder.camera.SimpleCameraActivity">
+        </activity>
     </application>
 
 </manifest>

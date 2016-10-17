@@ -2,7 +2,6 @@ package net.toughcoder.opengl.opengl2s;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.util.FloatMath;
 
 import net.toughcoder.opengl.oaqs.ShaderHelper;
 
@@ -89,8 +88,8 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             v[offset++] = y;
             for (int i = 0; i <= count; i++) {
                 float angle = ((float) Math.PI * 2.0f * i) / (float) count;
-                v[offset++] = x + radius * FloatMath.cos(angle);
-                v[offset++] = y + radius * FloatMath.sin(angle);
+                v[offset++] = (float) (x + radius * Math.cos(angle));
+                v[offset++] = (float) (y + radius * Math.sin(angle));
             }
             return v;
         }
@@ -129,10 +128,10 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             for (int i = 0; i < count; i++) {
                 float angle = (float) Math.PI * 2f * (float) i / (float) count;
                 float ep = random.nextFloat() * (radius - mCircle.radius) / 2;
-                v[offset++] = mCircle.x + (mCircle.radius + ep) * FloatMath.cos(angle);
-                v[offset++] = mCircle.y + (mCircle.radius + ep) * FloatMath.sin(angle);
-                v[offset++] = mCircle.x + (radius + ep) * FloatMath.cos(angle);
-                v[offset++] = mCircle.y + (radius + ep) * FloatMath.sin(angle);
+                v[offset++] = (float) (mCircle.x + (mCircle.radius + ep) * Math.cos(angle));
+                v[offset++] = (float) (mCircle.y + (mCircle.radius + ep) * Math.sin(angle));
+                v[offset++] = (float) (mCircle.x + (radius + ep) * Math.cos(angle));
+                v[offset++] = (float) (mCircle.y + (radius + ep) * Math.sin(angle));
             }
 
             return v;
