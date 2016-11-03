@@ -51,7 +51,7 @@ public class RecyclerViewExampleActivity extends Activity {
         mImages = null;
         mRecylerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        mShowType = ShowType.LIST;
+        mShowType = ShowType.GRID;
 
         setupRecyclerView(mRecylerView);
 
@@ -87,7 +87,7 @@ public class RecyclerViewExampleActivity extends Activity {
     }
 
     private void setupRecyclerView(RecyclerView rv) {
-        rv.setLayoutManager(new LinearLayoutManager(this));
+        rv.setLayoutManager(createLayoutManager(mShowType));
         rv.addItemDecoration(new GeneralDividerDcecoration(this));
         rv.setItemAnimator(new DefaultItemAnimator());
     }
@@ -156,7 +156,7 @@ public class RecyclerViewExampleActivity extends Activity {
 
             @Override
             protected void onPostExecute(List<ImageItem> imageItems) {
-                mAdapter = new GallaryAdapter(getApplication(), imageItems, mShowType);
+                mAdapter = new GallaryAdapter(RecyclerViewExampleActivity.this, imageItems, mShowType);
                 mRecylerView.setAdapter(mAdapter);
             }
         }.execute();
@@ -404,7 +404,7 @@ public class RecyclerViewExampleActivity extends Activity {
         Intent i = new Intent("productsearch");
         i.setDataAndType(Uri.parse(path), "image/jpeg");
         i.addCategory(Intent.CATEGORY_DEFAULT);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         ctx.startActivity(i);
     }
 }
