@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import net.toughcoder.animation.AnimationExampleListActivity;
 import net.toughcoder.camera.CameraExampleListActivity;
 import net.toughcoder.effectiveandroid.R;
+import net.toughcoder.libraries.LibraryExampleList;
 import net.toughcoder.miscellaneous.DrawableLabelActivity;
 import net.toughcoder.miscellaneous.ExampleListActivity;
 import net.toughcoder.miscellaneous.FragmentStateLossActivity;
@@ -54,6 +55,7 @@ public class MainActivity extends ExampleListActivity {
         list.add(CameraExampleListActivity.class);
         list.add(AnimationExampleListActivity.class);
         list.add(FragmentStateLossActivity.class);
+        list.add(LibraryExampleList.class);
         return list;
     }
 
