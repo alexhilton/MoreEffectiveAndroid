@@ -114,7 +114,7 @@
         </activity>
         <activity android:name="net.toughcoder.libraries.LibraryExampleList">
         </activity>
-        <activity android:name="net.toughcoder.libraries.RetrofitExampleActivity"
+        <activity android:name="net.toughcoder.libraries.retrofit2.RetrofitExampleActivity"
                   android:theme="@android:style/Theme.Holo">
         </activity>
     </application>
