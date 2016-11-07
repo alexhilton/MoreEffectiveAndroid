@@ -1,9 +1,11 @@
 package net.toughcoder;
 
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -38,6 +40,10 @@ public class MainActivity extends ExampleListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(TAG);
+
+        explainContext();
+
+//        threadLimit();
     }
 
     @Override
@@ -150,5 +156,40 @@ public class MainActivity extends ExampleListActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void explainContext() {
+        Context ctx = getApplicationContext();
+        Log.e(TAG, "explainContext getApplicationContext->" + ctx);
+        Application app = getApplication();
+        Log.e(TAG, "explainContext getApplication->" + app);
+    }
+
+    // Try to find how many threads an app can start at most?
+    // terminated by OOM, when reach 1759 on Nexus 6
+    private void threadLimit() {
+        int count = 0;
+        while (true) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            count++;
+            Log.e(TAG, "current " + count);
+        }
     }
 }
