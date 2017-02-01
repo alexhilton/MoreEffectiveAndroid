@@ -30,7 +30,7 @@ public class FragmentStateLossActivity extends Activity {
         // Not call super won't help us, still get crash
         super.onSaveInstanceState(outState);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-//            mStateSaved = true;
+            mStateSaved = true;
         }
         Log.e(TAG, "onSaveInstanceState. finishing " + isFinishing());
     }
@@ -77,19 +77,21 @@ public class FragmentStateLossActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.e(TAG, "keycode " + keyCode + ", event " + event);
-        return super.onKeyDown(keyCode, event);
-//        if (!mStateSaved) {
-//        } else {
-//            // State already saved, so ignore the event
-//            return true;
-//        }
+
+        if (!mStateSaved) {
+            return super.onKeyDown(keyCode, event);
+        } else {
+            // State already saved, so ignore the event
+            return true;
+        }
     }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         if (!mStateSaved) {
+            super.onBackPressed();
         }
+
         Log.e(TAG, "onBackPressed. finishing " + isFinishing());
     }
 }
