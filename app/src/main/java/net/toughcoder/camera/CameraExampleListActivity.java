@@ -23,6 +23,7 @@ public class CameraExampleListActivity extends ExampleListActivity {
         sActivityList.add(TextureViewActivity.class);
         sActivityList.add(OpenGLPreviewActivity.class);
         sActivityList.add(SimpleCameraActivity.class);
+        sActivityList.add(CameraColorEffectActivity.class);
         return sActivityList;
     }
 }

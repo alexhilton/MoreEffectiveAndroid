@@ -9,8 +9,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
-
-    <android:uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -51,15 +50,15 @@
             android:theme="@android:style/Theme.Holo"/>
         <activity
             android:name="net.toughcoder.widget.RecyclerViewExampleActivity"
-            android:label="RecyclerView Example"
             android:exported="true"
+            android:label="RecyclerView Example"
             android:theme="@android:style/Theme.Holo">
             <intent-filter>
-                <action android:name="recyclerviewexample" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="recyclerviewexample"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-
         <activity
             android:name="net.toughcoder.miscellaneous.KeyboardAwareActivity"
             android:label="Keyboard aware example"
@@ -114,8 +113,12 @@
         </activity>
         <activity android:name="net.toughcoder.libraries.LibraryExampleList">
         </activity>
-        <activity android:name="net.toughcoder.libraries.retrofit2.RetrofitExampleActivity"
-                  android:theme="@android:style/Theme.Holo">
+        <activity
+            android:name="net.toughcoder.libraries.retrofit2.RetrofitExampleActivity"
+            android:theme="@android:style/Theme.Holo">
+        </activity>
+        <activity android:name="net.toughcoder.camera.CameraColorEffectActivity"
+            android:theme="@android:style/Theme.Holo">
         </activity>
     </application>
 

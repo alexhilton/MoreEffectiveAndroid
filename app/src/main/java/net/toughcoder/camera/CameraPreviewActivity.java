@@ -146,7 +146,7 @@ public class CameraPreviewActivity extends Activity {
         }
     }
 
-    private static void setCameraDisplayOrientation(Activity activity,
+    public static void setCameraDisplayOrientation(Activity activity,
                                                    int cameraId, android.hardware.Camera camera) {
         android.hardware.Camera.CameraInfo info =
                 new android.hardware.Camera.CameraInfo();
