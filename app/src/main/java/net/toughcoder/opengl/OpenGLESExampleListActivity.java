@@ -5,6 +5,7 @@ import android.os.Bundle;
 import net.toughcoder.miscellaneous.ExampleListActivity;
 import net.toughcoder.opengl.opengl1s.StarActivity;
 import net.toughcoder.opengl.opengl2s.OpenGLExampleActivity;
+import net.toughcoder.opengl.sharedcontext.SharedEGLContextActivity;
 import net.toughcoder.opengl.starcamera.StarCameraActivity;
 import net.toughcoder.widget.AlphaOpenGLActivity;
 
@@ -30,6 +31,7 @@ public class OpenGLESExampleListActivity extends ExampleListActivity {
         list.add(OpenGLExampleActivity.class);
         list.add(StarActivity.class);
         list.add(StarCameraActivity.class);
+        list.add(SharedEGLContextActivity.class);
         return list;
     }
 }

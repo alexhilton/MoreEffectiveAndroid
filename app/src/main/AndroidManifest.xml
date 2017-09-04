@@ -119,6 +119,7 @@
         </activity>
         <activity android:name="net.toughcoder.camera.CameraColorEffectActivity"
             android:theme="@android:style/Theme.Holo">
+        <activity android:name="net.toughcoder.opengl.sharedcontext.SharedEGLContextActivity">
         </activity>
     </application>
 
