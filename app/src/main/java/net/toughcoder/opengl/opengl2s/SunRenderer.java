@@ -88,8 +88,8 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             v[offset++] = y;
             for (int i = 0; i <= count; i++) {
                 float angle = ((float) Math.PI * 2.0f * i) / (float) count;
-                v[offset++] = (float) (x + radius * Math.cos(angle));
-                v[offset++] = (float) (y + radius * Math.sin(angle));
+                v[offset++] = x + radius * (float) Math.cos(angle);
+                v[offset++] = y + radius * (float) Math.sin(angle);
             }
             return v;
         }
@@ -128,10 +128,10 @@ public class SunRenderer implements GLSurfaceView.Renderer {
             for (int i = 0; i < count; i++) {
                 float angle = (float) Math.PI * 2f * (float) i / (float) count;
                 float ep = random.nextFloat() * (radius - mCircle.radius) / 2;
-                v[offset++] = (float) (mCircle.x + (mCircle.radius + ep) * Math.cos(angle));
-                v[offset++] = (float) (mCircle.y + (mCircle.radius + ep) * Math.sin(angle));
-                v[offset++] = (float) (mCircle.x + (radius + ep) * Math.cos(angle));
-                v[offset++] = (float) (mCircle.y + (radius + ep) * Math.sin(angle));
+                v[offset++] = mCircle.x + (mCircle.radius + ep) * (float) Math.cos(angle);
+                v[offset++] = mCircle.y + (mCircle.radius + ep) * (float) Math.sin(angle);
+                v[offset++] = mCircle.x + (radius + ep) * (float) Math.cos(angle);
+                v[offset++] = mCircle.y + (radius + ep) * (float) Math.sin(angle);
             }
 
             return v;

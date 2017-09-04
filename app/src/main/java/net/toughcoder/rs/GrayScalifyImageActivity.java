@@ -4,9 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.renderscript.Allocation;
+import android.renderscript.RenderScript;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v8.renderscript.Allocation;
-import android.support.v8.renderscript.RenderScript;
 import android.view.Display;
 import android.widget.ImageView;
 

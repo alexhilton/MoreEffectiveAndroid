@@ -1,7 +1,6 @@
 package net.toughcoder.opengl.oaqs;
 
 import android.opengl.GLES20;
-import android.util.FloatMath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +47,9 @@ public class ObjectBuilder {
 
         for (int i = 0; i <= numPoints; i++) {
             float angleInRadius = ((float) i / (float) numPoints) * ((float) Math.PI * 2f);
-            vertexData[offset++] = (float) (circle.center.x + circle.radius * Math.cos(angleInRadius));
+            vertexData[offset++] = circle.center.x + circle.radius * (float) Math.cos(angleInRadius);
             vertexData[offset++] = circle.center.y;
-            vertexData[offset++] = (float) (circle.center.z + circle.radius * Math.sin(angleInRadius));
+            vertexData[offset++] = circle.center.z + circle.radius * (float) Math.sin(angleInRadius);
         }
 
         drawList.add(new DrawCommand() {
@@ -69,8 +68,8 @@ public class ObjectBuilder {
 
         for (int i = 0; i <= numPoints; i++) {
             float angle = ((float) i / (float) numPoints) * ((float) Math.PI * 2f);
-            float xPosition = (float) (cylinder.center.x + cylinder.radius * Math.cos(angle));
-            float zPosition = (float) (cylinder.center.z + cylinder.radius * Math.sin(angle));
+            float xPosition = cylinder.center.x + cylinder.radius * (float) Math.cos(angle);
+            float zPosition = cylinder.center.z + cylinder.radius * (float) Math.sin(angle);
 
             vertexData[offset++] = xPosition;
             vertexData[offset++] = yStart;
