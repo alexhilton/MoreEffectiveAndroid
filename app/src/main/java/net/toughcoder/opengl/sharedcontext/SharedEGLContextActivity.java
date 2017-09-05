@@ -209,9 +209,15 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     // Must be called in GLContext thread
     private void initializeSurfaceTexture() {
-        int[] tex = new int[1];
-        GLES20.glGenTextures(1, tex, 0);
-        mPreviewTexture = tex[0];
+        int[] textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
+
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        mPreviewTexture = textures[0];
         mSurfaceTexture = new SurfaceTexture(mPreviewTexture);
     }
 
