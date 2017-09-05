@@ -158,8 +158,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         setContentView(R.layout.activity_shared_eglcontext);
         setTitle(TAG);
 
-        mPreviewRenderer = new PreviewRenderer();
-
         // init thread
         mCameraThread = new HandlerThread("Camera Handler Thread");
         mCameraThread.start();
@@ -175,8 +173,16 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             }
         };
 
+        mPreviewRenderer = new PreviewRenderer();
         mPreview = initGLSurfaceView(R.id.preview);
-
+        mPreview.setRenderer(mPreviewRenderer);
+        mPreview.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mPreview.setZOrderOnTop(false);
+        mFilterRenderer = new FilterRenderer();
+        mFilter = initGLSurfaceView(R.id.filter);
+        mFilter.setRenderer(mFilterRenderer);
+        mFilter.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mFilter.setZOrderOnTop(true);
         // init camera
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -196,15 +202,13 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         view.setEGLContextClientVersion(2);
         view.setPreserveEGLContextOnPause(true);
         view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        view.setRenderer(mPreviewRenderer);
-        view.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         return view;
     }
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        Log.d(TAG, "onFrameAvailable");
         mPreview.requestRender();
+        mFilter.requestRender();
     }
 
     // Must be called in GLContext thread
@@ -221,7 +225,51 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mSurfaceTexture = new SurfaceTexture(mPreviewTexture);
     }
 
+    public static int loadProgram(final String vsh, final String fsh) {
+        int vshader = loadShader(vsh, GLES20.GL_VERTEX_SHADER);
+        if (vshader == 0) {
+            Log.e(TAG, "failed to load vertex shader " + vsh);
+            return 0;
+        }
+
+        int fshader = loadShader(fsh, GLES20.GL_FRAGMENT_SHADER);
+        if (fshader == 0) {
+            Log.e(TAG, "failed to load fragment shader " + fsh);
+            return 0;
+        }
+
+        int program = GLES20.glCreateProgram();
+        GLES20.glAttachShader(program, vshader);
+        GLES20.glAttachShader(program, fshader);
+        GLES20.glLinkProgram(program);
+
+        int[] status = new int[1];
+        GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0);
+        if (status[0] <= 0) {
+            Log.e(TAG, "failed to link program");
+        }
+
+        GLES20.glDeleteShader(vshader);
+        GLES20.glDeleteShader(fshader);
+
+        return program;
+    }
+
+    public static int loadShader(String source, int type) {
+        int[] status = new int[1];
+        int shader = GLES20.glCreateShader(type);
+        GLES20.glShaderSource(shader, source);
+        GLES20.glCompileShader(shader);
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, status, 0);
+        if (status[0] == 0) {
+            Log.e(TAG, "failed to compile shader " + source + ", type " + type);
+            return 0;
+        }
+        return shader;
+    }
+
     private class PreviewRenderer implements GLSurfaceView.Renderer {
+        private static final String TAG = "PreviewRenderer";
         public final float[] CUBE = {
                 -1.0f, -1.0f,
                 1.0f, -1.0f,
@@ -338,65 +386,95 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             mUniformLocation = GLES20.glGetUniformLocation(mProgram, "uTextureSampler");
             mUniformMatrix = GLES20.glGetUniformLocation(mProgram, "uSTMatrix");
         }
-
-        public int loadProgram(final String vsh, final String fsh) {
-            int vshader = loadShader(vsh, GLES20.GL_VERTEX_SHADER);
-            if (vshader == 0) {
-                Log.e(TAG, "failed to load vertex shader " + vsh);
-                return 0;
-            }
-
-            int fshader = loadShader(fsh, GLES20.GL_FRAGMENT_SHADER);
-            if (fshader == 0) {
-                Log.e(TAG, "failed to load fragment shader " + fsh);
-                return 0;
-            }
-
-            int program = GLES20.glCreateProgram();
-            GLES20.glAttachShader(program, vshader);
-            GLES20.glAttachShader(program, fshader);
-            GLES20.glLinkProgram(program);
-
-            int[] status = new int[1];
-            GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0);
-            if (status[0] <= 0) {
-                Log.e(TAG, "failed to link program");
-            }
-
-            GLES20.glDeleteShader(vshader);
-            GLES20.glDeleteShader(fshader);
-
-            return program;
-        }
-
-        public int loadShader(String source, int type) {
-            int[] status = new int[1];
-            int shader = GLES20.glCreateShader(type);
-            GLES20.glShaderSource(shader, source);
-            GLES20.glCompileShader(shader);
-            GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, status, 0);
-            if (status[0] == 0) {
-                Log.e(TAG, "failed to compile shader " + source + ", type " + type);
-                return 0;
-            }
-            return shader;
-        }
     }
 
     private class FilterRenderer implements GLSurfaceView.Renderer {
+        private static final String TAG = "FilterRenderer";
+        public final float[] CUBE = {
+                -1.0f, -1.0f,
+                1.0f, -1.0f,
+                -1.0f, 1.0f,
+                1.0f, 1.0f,
+        };
+        public final float[] TEXTURE_NO_ROTATION = {
+                0.0f, 0.0f,
+                1.0f, 0.0f,
+                0.0f, 1.0f,
+                1.0f, 1.0f,
+        };
+        private final FloatBuffer mCubeBuffer;
+        private final FloatBuffer mTextureBuffer;
+
+        public static final String VERTEX_SHADER =
+                "attribute vec4 position;\n" +
+                        "void main() {\n" +
+                        "  gl_Position = position;\n" +
+                        "}";
+
+        public static final String FRAGMENT_SHADER =
+                        "precision highp float;\n" +
+                        "void main () {\n" +
+                        "  gl_FragColor = vec4(0.5, 0.6, 0.0, 1);\n" +
+                        "}";
+        private int mProgram;
+        private int mAttributePosition;
+        protected int mTextureCoords;
+        private int mUniformLocation;
+        private int mUniformMatrix;
+
+        public FilterRenderer() {
+            mCubeBuffer = ByteBuffer.allocateDirect(CUBE.length * 4)
+                    .order(ByteOrder.nativeOrder())
+                    .asFloatBuffer();
+            mCubeBuffer.put(CUBE).position(0);
+
+            mTextureBuffer = ByteBuffer.allocateDirect(TEXTURE_NO_ROTATION.length * 4)
+                    .order(ByteOrder.nativeOrder())
+                    .asFloatBuffer();
+            mTextureBuffer.put(TEXTURE_NO_ROTATION).position(0);
+        }
+
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+            Log.d(TAG, "onSurfaceCreated");
+            // Initialize GL stuff
+            GLES20.glDisable(GLES20.GL_DITHER);
+            GLES20.glClearColor(0, 0, 0, 0);
+            GLES20.glEnable(GLES20.GL_CULL_FACE);
+            GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 
+            init();
+        }
+
+        private final void init() {
+            mProgram = loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+            mAttributePosition = GLES20.glGetAttribLocation(mProgram, "position");
         }
 
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
-
+            Log.d(TAG, "onSurfaceChanged width " + width + ", height " + height);
+            GLES20.glViewport(0, 0, width, height);
         }
 
         @Override
         public void onDrawFrame(GL10 gl) {
+            Log.d(TAG, "onDrawFrame");
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
+            GLES20.glUseProgram(mProgram);
+
+            mCubeBuffer.position(0);
+            GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mCubeBuffer);
+            GLES20.glEnableVertexAttribArray(mAttributePosition);
+
+            final int error = GLES20.glGetError();
+            if (error != 0) {
+                Log.e("render", "render error " + String.format("0x%x", error));
+            }
+
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+            GLES20.glDisableVertexAttribArray(mAttributePosition);
         }
     }
 }
