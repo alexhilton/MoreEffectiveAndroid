@@ -272,6 +272,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             mTextureBuffer = ByteBuffer.allocateDirect(TEXTURE_NO_ROTATION.length * 4)
                     .order(ByteOrder.nativeOrder())
                     .asFloatBuffer();
+            mTextureBuffer.put(TEXTURE_NO_ROTATION).position(0);
         }
 
         @Override
