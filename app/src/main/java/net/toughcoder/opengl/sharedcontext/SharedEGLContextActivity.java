@@ -423,14 +423,16 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                         "  textureCoords = (uSTMatrix * inputTextureCoords).xy;\n" +
                         "}";
 
-        public static final String FRAGMENT_SHADER =
+        public static final String GRAYSCALE_FRAGMENT_SHADER =
                 "#extension GL_OES_EGL_image_external : require\n" +
                         "precision highp float;\n" +
                         "uniform samplerExternalOES uTextureSampler;\n" +
                         "varying vec2 textureCoords;\n" +
                         "void main () {\n" +
                         "  vec4 tex = texture2D(uTextureSampler, textureCoords);\n" +
-                        "  gl_FragColor = vec4(tex.rgb, 1);\n" +
+                        "  vec3 factor = vec3(0.299, 0.587, 0.114); \n" +
+                        "  float gray = dot(tex.rgb, factor); \n" +
+                        "  gl_FragColor = vec4(gray, gray, gray, 1);\n" +
                         "}";
 
         private int mProgram;
@@ -502,7 +504,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
 
         public final void init() {
-            mProgram = loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+            mProgram = loadProgram(VERTEX_SHADER, GRAYSCALE_FRAGMENT_SHADER);
             mAttributePosition = GLES20.glGetAttribLocation(mProgram, "position");
             mTextureCoords = GLES20.glGetAttribLocation(mProgram, "inputTextureCoords");
             mUniformLocation = GLES20.glGetUniformLocation(mProgram, "uTextureSampler");
