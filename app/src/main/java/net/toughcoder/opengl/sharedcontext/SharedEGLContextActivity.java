@@ -34,7 +34,10 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.opengles.GL10;
 
 @TargetApi(Build.VERSION_CODES.M)
@@ -53,6 +56,8 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private int mPreviewTexture;
     private CameraCaptureSession mSession;
     private CaptureRequest.Builder mPreviewRequestBuilder;
+    private SharedEGLContextFactory mEGLContextFactory;
+
     private Handler mMainHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -173,13 +178,16 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             }
         };
 
+        mEGLContextFactory = new SharedEGLContextFactory();
         mPreviewRenderer = new PreviewRenderer();
         mPreview = initGLSurfaceView(R.id.preview);
+        mPreview.setEGLContextFactory(mEGLContextFactory);
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mPreview.setZOrderOnTop(false);
         mFilterRenderer = new FilterRenderer();
         mFilter = initGLSurfaceView(R.id.filter);
+        mFilter.setEGLContextFactory(mEGLContextFactory);
         mFilter.setRenderer(mFilterRenderer);
         mFilter.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mFilter.setZOrderOnTop(true);
@@ -407,15 +415,24 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
         public static final String VERTEX_SHADER =
                 "attribute vec4 position;\n" +
+                        "uniform mat4 uSTMatrix;\n" +
+                        "attribute vec4 inputTextureCoords;\n" +
+                        "varying vec2 textureCoords;\n" +
                         "void main() {\n" +
                         "  gl_Position = position;\n" +
+                        "  textureCoords = (uSTMatrix * inputTextureCoords).xy;\n" +
                         "}";
 
         public static final String FRAGMENT_SHADER =
+                "#extension GL_OES_EGL_image_external : require\n" +
                         "precision highp float;\n" +
+                        "uniform samplerExternalOES uTextureSampler;\n" +
+                        "varying vec2 textureCoords;\n" +
                         "void main () {\n" +
-                        "  gl_FragColor = vec4(0.5, 0.6, 0.0, 1);\n" +
+                        "  vec4 tex = texture2D(uTextureSampler, textureCoords);\n" +
+                        "  gl_FragColor = vec4(tex.rgb, 1);\n" +
                         "}";
+
         private int mProgram;
         private int mAttributePosition;
         protected int mTextureCoords;
@@ -446,28 +463,33 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             init();
         }
 
-        private final void init() {
-            mProgram = loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-            mAttributePosition = GLES20.glGetAttribLocation(mProgram, "position");
-        }
-
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
-            Log.d(TAG, "onSurfaceChanged width " + width + ", height " + height);
+            Log.d(TAG, "onSurfaceChanged");
             GLES20.glViewport(0, 0, width, height);
         }
 
         @Override
         public void onDrawFrame(GL10 gl) {
-            Log.d(TAG, "onDrawFrame");
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             GLES20.glUseProgram(mProgram);
 
             mCubeBuffer.position(0);
             GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mCubeBuffer);
             GLES20.glEnableVertexAttribArray(mAttributePosition);
 
+            mTextureBuffer.position(0);
+            GLES20.glVertexAttribPointer(mTextureCoords, 2, GLES20.GL_FLOAT, false, 0, mTextureBuffer);
+            GLES20.glEnableVertexAttribArray(mTextureCoords);
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+            GLES20.glUniform1i(mUniformLocation, 0);
+            GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mPreviewTexture);
+
+            float[] matrix = new float[16];
+            mSurfaceTexture.getTransformMatrix(matrix);
+            GLES20.glUniformMatrix4fv(mUniformMatrix, 1, false, matrix, 0);
             final int error = GLES20.glGetError();
             if (error != 0) {
                 Log.e("render", "render error " + String.format("0x%x", error));
@@ -475,6 +497,37 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
             GLES20.glDisableVertexAttribArray(mAttributePosition);
+            GLES20.glDisableVertexAttribArray(mTextureCoords);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        }
+
+        public final void init() {
+            mProgram = loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+            mAttributePosition = GLES20.glGetAttribLocation(mProgram, "position");
+            mTextureCoords = GLES20.glGetAttribLocation(mProgram, "inputTextureCoords");
+            mUniformLocation = GLES20.glGetUniformLocation(mProgram, "uTextureSampler");
+            mUniformMatrix = GLES20.glGetUniformLocation(mProgram, "uSTMatrix");
+        }
+    }
+
+    public class SharedEGLContextFactory implements GLSurfaceView.EGLContextFactory {
+        private int CLIENT_VERSION = 0x3098;
+
+        public EGLContext mSharedContext;
+
+        @Override
+        public EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig) {
+            int[] attrib_list = {CLIENT_VERSION, 2, EGL10.EGL_NONE};
+            mSharedContext = egl.eglCreateContext(display,
+                    eglConfig, mSharedContext == null ? EGL10.EGL_NO_CONTEXT : mSharedContext, attrib_list);
+            return mSharedContext;
+        }
+
+        @Override
+        public void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context) {
+            if (!egl.eglDestroyContext(display, context)) {
+                Log.d(TAG, "Failed to destory context");
+            }
         }
     }
 }
