@@ -5,15 +5,19 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -24,6 +28,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 
 import net.toughcoder.effectiveandroid.R;
@@ -86,12 +91,16 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
 
     // Need to wait for SurfaceTexture creation.
-    private void setupPreview() {
+    private void setupPreview(int targetWidth, int targetHeight) {
         Log.d(TAG, "setuppreview device + " + mCameraDevice + ", surface " + mSurfaceTexture);
-        mSurfaceTexture.setOnFrameAvailableListener(this);
         mCameraHandler.removeMessages(MSG_START_PREVIEW);
+        configPreviewSize(targetWidth, targetHeight);
+        mSurfaceTexture.setOnFrameAvailableListener(this);
         if (mCameraDevice == null) {
-            mCameraHandler.sendEmptyMessageDelayed(MSG_START_PREVIEW, 100);
+            Message msg = Message.obtain();
+            msg.what = MSG_START_PREVIEW;
+            msg.obj = new Size(targetWidth, targetHeight);
+            mCameraHandler.sendMessageDelayed(msg, 100);
             return;
         }
         List<Surface> target = new ArrayList<>();
@@ -110,6 +119,49 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private void configPreviewSize(int targetWidth, int targetHeight) {
+        try {
+            CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(CAMERA);
+            StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+            // Find out whether need to swap dimensions
+            final int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
+            final int sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            boolean needSwap = false;
+            switch (displayRotation) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    needSwap = sensorOrientation == 90 || sensorOrientation == 270;
+                    break;
+                case Surface.ROTATION_90:
+                case Surface.ROTATION_270:
+                    needSwap = sensorOrientation == 0 || sensorOrientation == 180;
+                    break;
+                default:
+                    Log.d(TAG, "Invalid display rotation, something is really wrong.");
+            }
+            final int rotatedWidth = needSwap ? targetHeight : targetWidth;
+            final int rotatedHeight = needSwap ? targetWidth : targetHeight;
+            final Size bestPreviewSize = chooseOptimalPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), rotatedWidth, rotatedHeight);
+            Log.d(TAG, "preview size w -> " + bestPreviewSize.getWidth() + ", height -> " + bestPreviewSize.getHeight());
+            mSurfaceTexture.setDefaultBufferSize(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        mSurfaceTexture.setDefaultBufferSize(1920, 1080);
+    }
+
+    private Size chooseOptimalPreviewSize(Size[] choices, int targetWidth, int targetHeight) {
+        final float desiredRatio = (float) targetWidth / (float) targetHeight;
+        for (Size option : choices) {
+            float ratio = (float) option.getWidth() / (float) option.getHeight();
+            if (Math.abs(ratio - desiredRatio) < 0.02) {
+                return option;
+            }
+        }
+        return choices[0];
     }
 
     private CameraCaptureSession.StateCallback mSessionCallback = new CameraCaptureSession.StateCallback() {
@@ -173,7 +225,8 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case MSG_START_PREVIEW: {
-                        setupPreview();
+                        Size p = (Size) msg.obj;
+                        setupPreview(p.getWidth(), p.getHeight());
                         break;
                     }
                 }
@@ -346,8 +399,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
             Log.d(TAG, "onSurfaceCreated");
             initializeSurfaceTexture();
-            // Able to start preview now.
-            mCameraHandler.sendEmptyMessage(MSG_START_PREVIEW);
 
             // Initialize GL stuff
             GLES20.glDisable(GLES20.GL_DITHER);
@@ -362,6 +413,11 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         public void onSurfaceChanged(GL10 gl, int width, int height) {
             Log.d(TAG, "onSurfaceChanged");
             GLES20.glViewport(0, 0, width, height);
+            // Able to start preview now.
+            Message msg = Message.obtain();
+            msg.what = MSG_START_PREVIEW;
+            msg.obj = new Size(width, height);
+            mCameraHandler.sendMessage(msg);
         }
 
         @Override
