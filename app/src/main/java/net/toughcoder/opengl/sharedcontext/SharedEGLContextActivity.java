@@ -47,9 +47,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     private static final int MSG_START_PREVIEW = 0x100;
 
-    private GLSurfaceView mPreview;
-    private GLSurfaceView mGrayscale;
-    private GLSurfaceView mSketch;
     private SurfaceTexture mSurfaceTexture;
     private CameraManager mCameraManager;
     private CameraDevice mCameraDevice;
@@ -202,9 +199,15 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private HandlerThread mCameraThread;
     private Handler mCameraHandler;
 
+    private GLSurfaceView mPreview;
+    private GLSurfaceView mGrayscale;
+    private GLSurfaceView mLightTunnel;
+    private GLSurfaceView mFisheye;
+
     private GLSurfaceView.Renderer mPreviewRenderer;
     private GLSurfaceView.Renderer mFilterRenderer;
-    private GLSurfaceView.Renderer mSketchRenderer;
+    private GLSurfaceView.Renderer mLightTunnelRenderer;
+    private GLSurfaceView.Renderer mFisheyeRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,18 +239,24 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mPreview.setZOrderOnTop(false);
-        mFilterRenderer = new FilterRenderer();
+        mFilterRenderer = new GrayscaleRenderer();
         mGrayscale = initGLSurfaceView(R.id.grayscale);
         mGrayscale.setEGLContextFactory(mEGLContextFactory);
         mGrayscale.setRenderer(mFilterRenderer);
         mGrayscale.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mGrayscale.setZOrderOnTop(true);
-        mSketchRenderer = new SketchRenderer();
-        mSketch = initGLSurfaceView(R.id.sketch);
-        mSketch.setEGLContextFactory(mEGLContextFactory);
-        mSketch.setRenderer(mSketchRenderer);
-        mSketch.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        mSketch.setZOrderOnTop(true);
+        mLightTunnelRenderer = new LightTunnelRenderer();
+        mLightTunnel = initGLSurfaceView(R.id.sketch);
+        mLightTunnel.setEGLContextFactory(mEGLContextFactory);
+        mLightTunnel.setRenderer(mLightTunnelRenderer);
+        mLightTunnel.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mLightTunnel.setZOrderOnTop(true);
+        mFisheyeRenderer = new FisheyeRenderer();
+        mFisheye = initGLSurfaceView(R.id.fisheye);
+        mFisheye.setEGLContextFactory(mEGLContextFactory);
+        mFisheye.setRenderer(mFisheyeRenderer);
+        mFisheye.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mFisheye.setZOrderOnTop(true);
 
         // init camera
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -275,7 +284,8 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         mPreview.requestRender();
         mGrayscale.requestRender();
-        mSketch.requestRender();
+        mLightTunnel.requestRender();
+        mFisheye.requestRender();
     }
 
     // Must be called in GLContext thread
@@ -330,8 +340,8 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
     }
 
-    private class FilterRenderer extends SurfaceTextureRenderer {
-        private static final String TAG = "FilterRenderer";
+    private class GrayscaleRenderer extends SurfaceTextureRenderer {
+        private static final String TAG = "GrayscaleRenderer";
 
         public static final String GRAYSCALE_FRAGMENT_SHADER =
                 "#extension GL_OES_EGL_image_external : require\n" +
@@ -382,8 +392,42 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
     }
 
-    private class SketchRenderer extends SurfaceTextureRenderer {
-        private static final String TAG = "SketchRenderer";
+    private class LightTunnelRenderer extends SurfaceTextureRenderer {
+        private static final String TAG = "LightTunnelRenderer";
+
+        private static final String FRAG_SHADER =
+                "#extension GL_OES_EGL_image_external : require\n" +
+                        "precision highp float;\n" +
+                        "uniform samplerExternalOES uTextureSampler;\n" +
+                        "varying vec2 textureCoords;\n" +
+
+                        "vec4 lighttunnel() { \n" +
+                        "    float trans_center_x = 0.5; \n" +
+                        "    float trans_center_y = 0.5; \n" +
+                        "    float cut_radius = 0.3; \n" +
+
+                        "    float amplify_rate = 100.0; \n" +
+                        "    float dist_x = textureCoords[0]-trans_center_x; \n" +
+                        "    float dist_y = textureCoords[1]-trans_center_y; \n" +
+                        "    float radius = sqrt(pow(dist_y*amplify_rate, 2.0) + pow(dist_x*amplify_rate, 2.0)); \n" +
+                        "    float sin_angle = dist_y * amplify_rate / radius; \n" +
+                        "    float cos_angle = dist_x * amplify_rate / radius; \n" +
+                        "    radius = radius / amplify_rate; \n" +
+                        "    float new_radius = radius; \n" +
+                        "    if(radius > cut_radius) { \n" +
+                        "        new_radius = cut_radius; \n" +
+                        "    } \n" +
+                        "    vec2 newCoord = vec2(trans_center_x + new_radius*cos_angle, trans_center_y + new_radius*sin_angle); \n" +
+                        "    if (newCoord.x > 1.0 || newCoord.x < 0.0 || newCoord.y > 1.0 || newCoord.y < 0.0) { \n" +
+                        "        return vec4(0.0, 0.0, 0.0, 1.0); \n" +
+                        "    } else { \n" +
+                        "        return texture2D(uTextureSampler, newCoord); \n" +
+                        "    } \n" +
+                        "} \n" +
+
+                        "void main() { \n" +
+                        "    gl_FragColor = vec4(lighttunnel().rgb, 1.0); \n" +
+                        "}";
 
         @Override
         protected SurfaceTexture getSurfaceTexture() {
@@ -393,6 +437,68 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         @Override
         protected int getPreviewTexture() {
             return mPreviewTexture;
+        }
+
+        @Override
+        protected String getFragmentShader() {
+            return FRAG_SHADER;
+        }
+    }
+
+    private class FisheyeRenderer extends SurfaceTextureRenderer {
+        private static final String FRAG =
+                "#extension GL_OES_EGL_image_external : require\n" +
+                        "precision highp float;\n" +
+                        "uniform samplerExternalOES uTextureSampler;\n" +
+                        "varying vec2 textureCoords;\n" +
+
+                        "vec4 bigface() { \n" +
+                        "    float trans_center_x = 0.5; \n" +
+                        "    float trans_center_y = 0.5; \n" +
+                        "    float cut_radius = 0.6; \n" +
+
+                        "    float amplify_rate = 100.0; \n" +
+                        "    float dist_x = textureCoords[0] - trans_center_x; \n" +
+                        "    float dist_y = textureCoords[1] - trans_center_y; \n" +
+                        "    float radius = sqrt(pow(dist_y*amplify_rate, 2.0) + pow(dist_x*amplify_rate, 2.0)); \n" +
+                        "    float sin_angle = dist_y * amplify_rate / radius; \n" +
+                        "    float cos_angle = dist_x * amplify_rate / radius; \n" +
+                        "    radius = radius / amplify_rate; \n" +
+
+                        "    float new_radius = pow(radius/cut_radius, 1.4) * cut_radius; \n" +
+                        "    if(radius > cut_radius) { \n" +
+                        "        new_radius = radius; \n" +
+                        "    } \n" +
+
+                        "    vec2 newCoord = vec2(trans_center_x + new_radius*cos_angle, trans_center_y + new_radius*sin_angle); \n" +
+                        "    if(radius > cut_radius) { \n" +
+                        "        newCoord = textureCoords; \n" +
+                        "    } \n" +
+
+                        "    if (newCoord.x > 1.0 || newCoord.x < 0.0 || newCoord.y > 1.0 || newCoord.y < 0.0) { \n" +
+                        "        return vec4(0.0, 0.0, 0.0, 1.0); \n" +
+                        "    } else { \n" +
+                        "        return texture2D(uTextureSampler, newCoord); \n" +
+                        "    } \n" +
+                        "} \n" +
+
+                        "void main() { \n" +
+                        "    gl_FragColor = vec4(bigface().rgb, 1.); \n" +
+                        "}";
+
+        @Override
+        protected SurfaceTexture getSurfaceTexture() {
+            return mSurfaceTexture;
+        }
+
+        @Override
+        protected int getPreviewTexture() {
+            return mPreviewTexture;
+        }
+
+        @Override
+        protected String getFragmentShader() {
+            return FRAG;
         }
     }
 }
