@@ -202,12 +202,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private GLSurfaceView mPreview;
     private GLSurfaceView mGrayscale;
     private GLSurfaceView mSwirl;
-    private GLSurfaceView mFisheye;
+    private GLSurfaceView mSphereRefraction;
 
     private GLSurfaceView.Renderer mPreviewRenderer;
     private GLSurfaceView.Renderer mFilterRenderer;
     private GLSurfaceView.Renderer mSwirlRenderer;
-    private GLSurfaceView.Renderer mFisheyeRenderer;
+    private GLSurfaceView.Renderer mSphereRefractionRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,12 +251,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mSwirl.setRenderer(mSwirlRenderer);
         mSwirl.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mSwirl.setZOrderOnTop(true);
-        mFisheyeRenderer = new FisheyeRenderer();
-        mFisheye = initGLSurfaceView(R.id.fisheye);
-        mFisheye.setEGLContextFactory(mEGLContextFactory);
-        mFisheye.setRenderer(mFisheyeRenderer);
-        mFisheye.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        mFisheye.setZOrderOnTop(true);
+        mSphereRefractionRenderer = new SphereRefractionRenderer();
+        mSphereRefraction = initGLSurfaceView(R.id.fisheye);
+        mSphereRefraction.setEGLContextFactory(mEGLContextFactory);
+        mSphereRefraction.setRenderer(mSphereRefractionRenderer);
+        mSphereRefraction.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mSphereRefraction.setZOrderOnTop(true);
 
         // init camera
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -285,7 +285,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview.requestRender();
         mGrayscale.requestRender();
         mSwirl.requestRender();
-        mFisheye.requestRender();
+        mSphereRefraction.requestRender();
     }
 
     // Must be called in GLContext thread
@@ -350,9 +350,9 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                         "varying vec2 textureCoords;\n" +
                         "void main () {\n" +
                         "  vec4 tex = texture2D(uTextureSampler, textureCoords);\n" +
-                        "  vec3 factor = vec3(0.299, 0.587, 0.114); \n" +
-                        "  float gray = dot(tex.rgb, factor); \n" +
-                        "  gl_FragColor = vec4(gray, gray, gray, 1);\n" +
+                        "  vec3 factor = vec3(0.2125, 0.7154, 0.0721); \n" +
+                        "  float luma = dot(tex.rgb, factor); \n" +
+                        "  gl_FragColor = vec4(vec3(luma), tex.a);\n" +
                         "}";
 
         @Override
@@ -438,46 +438,33 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
     }
 
-    private class FisheyeRenderer extends SurfaceTextureRenderer {
-        private static final String FRAG =
+    private class SphereRefractionRenderer extends SurfaceTextureRenderer {
+        private static final String SPHERE_FRAGMENT_SHADER =
                 "#extension GL_OES_EGL_image_external : require\n" +
-                        "precision highp float;\n" +
-                        "uniform samplerExternalOES uTextureSampler;\n" +
-                        "varying vec2 textureCoords;\n" +
-
-                        "vec4 bigface() { \n" +
-                        "    float trans_center_x = 0.5; \n" +
-                        "    float trans_center_y = 0.5; \n" +
-                        "    float cut_radius = 0.6; \n" +
-
-                        "    float amplify_rate = 100.0; \n" +
-                        "    float dist_x = textureCoords[0] - trans_center_x; \n" +
-                        "    float dist_y = textureCoords[1] - trans_center_y; \n" +
-                        "    float radius = sqrt(pow(dist_y*amplify_rate, 2.0) + pow(dist_x*amplify_rate, 2.0)); \n" +
-                        "    float sin_angle = dist_y * amplify_rate / radius; \n" +
-                        "    float cos_angle = dist_x * amplify_rate / radius; \n" +
-                        "    radius = radius / amplify_rate; \n" +
-
-                        "    float new_radius = pow(radius/cut_radius, 1.4) * cut_radius; \n" +
-                        "    if(radius > cut_radius) { \n" +
-                        "        new_radius = radius; \n" +
-                        "    } \n" +
-
-                        "    vec2 newCoord = vec2(trans_center_x + new_radius*cos_angle, trans_center_y + new_radius*sin_angle); \n" +
-                        "    if(radius > cut_radius) { \n" +
-                        "        newCoord = textureCoords; \n" +
-                        "    } \n" +
-
-                        "    if (newCoord.x > 1.0 || newCoord.x < 0.0 || newCoord.y > 1.0 || newCoord.y < 0.0) { \n" +
-                        "        return vec4(0.0, 0.0, 0.0, 1.0); \n" +
-                        "    } else { \n" +
-                        "        return texture2D(uTextureSampler, newCoord); \n" +
-                        "    } \n" +
-                        "} \n" +
-
-                        "void main() { \n" +
-                        "    gl_FragColor = vec4(bigface().rgb, 1.); \n" +
-                        "}";
+                "varying highp vec2 textureCoords;\n" +
+                "\n" +
+                "uniform samplerExternalOES uTextureSampler;\n" +
+                "\n" +
+                "highp vec2 center = vec2(.5, .5);\n" +
+                "highp float radius = .51;\n" +
+                "highp float aspectRatio = 1.1;\n" +
+                "highp float refractiveIndex = .71;\n" +
+                "\n" +
+                "void main()\n" +
+                "{\n" +
+                "  highp vec2 textureCoordinateToUse = vec2(textureCoords.x, (textureCoords.y * aspectRatio + 0.5 - 0.5 * aspectRatio));\n" +
+                "  highp float distanceFromCenter = distance(center, textureCoordinateToUse);\n" +
+                "  lowp float checkForPresenceWithinSphere = step(distanceFromCenter, radius);\n" +
+                "\n" +
+                "  distanceFromCenter = distanceFromCenter / radius;\n" +
+                "\n" +
+                "  highp float normalizedDepth = radius * sqrt(1.0 - distanceFromCenter * distanceFromCenter);\n" +
+                "  highp vec3 sphereNormal = normalize(vec3(textureCoordinateToUse - center, normalizedDepth));\n" +
+                "\n" +
+                "  highp vec3 refractedVector = refract(vec3(0.0, 0.0, -1.0), sphereNormal, refractiveIndex);\n" +
+                "\n" +
+                "  gl_FragColor = texture2D(uTextureSampler, (refractedVector.xy + 1.0) * 0.5) * checkForPresenceWithinSphere;\n" +
+                "}\n";
 
         @Override
         protected SurfaceTexture getSurfaceTexture() {
@@ -491,7 +478,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
         @Override
         protected String getFragmentShader() {
-            return FRAG;
+            return SPHERE_FRAGMENT_SHADER;
         }
     }
 }
