@@ -201,12 +201,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     private GLSurfaceView mPreview;
     private GLSurfaceView mGrayscale;
-    private GLSurfaceView mLightTunnel;
+    private GLSurfaceView mSwirl;
     private GLSurfaceView mFisheye;
 
     private GLSurfaceView.Renderer mPreviewRenderer;
     private GLSurfaceView.Renderer mFilterRenderer;
-    private GLSurfaceView.Renderer mLightTunnelRenderer;
+    private GLSurfaceView.Renderer mSwirlRenderer;
     private GLSurfaceView.Renderer mFisheyeRenderer;
 
     @Override
@@ -245,12 +245,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mGrayscale.setRenderer(mFilterRenderer);
         mGrayscale.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mGrayscale.setZOrderOnTop(true);
-        mLightTunnelRenderer = new LightTunnelRenderer();
-        mLightTunnel = initGLSurfaceView(R.id.sketch);
-        mLightTunnel.setEGLContextFactory(mEGLContextFactory);
-        mLightTunnel.setRenderer(mLightTunnelRenderer);
-        mLightTunnel.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        mLightTunnel.setZOrderOnTop(true);
+        mSwirlRenderer = new SwirlRenderer();
+        mSwirl = initGLSurfaceView(R.id.sketch);
+        mSwirl.setEGLContextFactory(mEGLContextFactory);
+        mSwirl.setRenderer(mSwirlRenderer);
+        mSwirl.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mSwirl.setZOrderOnTop(true);
         mFisheyeRenderer = new FisheyeRenderer();
         mFisheye = initGLSurfaceView(R.id.fisheye);
         mFisheye.setEGLContextFactory(mEGLContextFactory);
@@ -284,7 +284,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         mPreview.requestRender();
         mGrayscale.requestRender();
-        mLightTunnel.requestRender();
+        mSwirl.requestRender();
         mFisheye.requestRender();
     }
 
@@ -392,42 +392,35 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
     }
 
-    private class LightTunnelRenderer extends SurfaceTextureRenderer {
-        private static final String TAG = "LightTunnelRenderer";
+    private class SwirlRenderer extends SurfaceTextureRenderer {
+        private static final String TAG = "SwirlRenderer";
 
-        private static final String FRAG_SHADER =
+        private static final String SWIRL_FRAGMENT_SHADER =
                 "#extension GL_OES_EGL_image_external : require\n" +
-                        "precision highp float;\n" +
-                        "uniform samplerExternalOES uTextureSampler;\n" +
-                        "varying vec2 textureCoords;\n" +
-
-                        "vec4 lighttunnel() { \n" +
-                        "    float trans_center_x = 0.5; \n" +
-                        "    float trans_center_y = 0.5; \n" +
-                        "    float cut_radius = 0.3; \n" +
-
-                        "    float amplify_rate = 100.0; \n" +
-                        "    float dist_x = textureCoords[0]-trans_center_x; \n" +
-                        "    float dist_y = textureCoords[1]-trans_center_y; \n" +
-                        "    float radius = sqrt(pow(dist_y*amplify_rate, 2.0) + pow(dist_x*amplify_rate, 2.0)); \n" +
-                        "    float sin_angle = dist_y * amplify_rate / radius; \n" +
-                        "    float cos_angle = dist_x * amplify_rate / radius; \n" +
-                        "    radius = radius / amplify_rate; \n" +
-                        "    float new_radius = radius; \n" +
-                        "    if(radius > cut_radius) { \n" +
-                        "        new_radius = cut_radius; \n" +
-                        "    } \n" +
-                        "    vec2 newCoord = vec2(trans_center_x + new_radius*cos_angle, trans_center_y + new_radius*sin_angle); \n" +
-                        "    if (newCoord.x > 1.0 || newCoord.x < 0.0 || newCoord.y > 1.0 || newCoord.y < 0.0) { \n" +
-                        "        return vec4(0.0, 0.0, 0.0, 1.0); \n" +
-                        "    } else { \n" +
-                        "        return texture2D(uTextureSampler, newCoord); \n" +
-                        "    } \n" +
-                        "} \n" +
-
-                        "void main() { \n" +
-                        "    gl_FragColor = vec4(lighttunnel().rgb, 1.0); \n" +
-                        "}";
+                "precision highp float;\n" +
+                "uniform samplerExternalOES uTextureSampler;\n" +
+                "varying highp vec2 textureCoords;\n" +
+                "\n" +
+                "highp vec2 center = vec2(.5, .5);\n" +
+                "highp float radius = .5;\n" +
+                "highp float angle = 1.;\n" +
+                "\n" +
+                "void main()\n" +
+                "{\n" +
+                "  highp vec2 textureCoordinateToUse = textureCoords;\n" +
+                "  highp float dist = distance(center, textureCoords);\n" +
+                "  if (dist < radius)\n" +
+                "  {\n" +
+                "    textureCoordinateToUse -= center;\n" +
+                "    highp float percent = (radius - dist) / radius;\n" +
+                "    highp float theta = percent * percent * angle * 8.0;\n" +
+                "    highp float s = sin(theta);\n" +
+                "    highp float c = cos(theta);\n" +
+                "    textureCoordinateToUse = vec2(dot(textureCoordinateToUse, vec2(c, -s)), dot(textureCoordinateToUse, vec2(s, c)));\n" +
+                "    textureCoordinateToUse += center;\n" +
+                "  }\n" +
+                "  gl_FragColor = texture2D(uTextureSampler, textureCoordinateToUse);\n" +
+                "}\n";
 
         @Override
         protected SurfaceTexture getSurfaceTexture() {
@@ -441,7 +434,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
         @Override
         protected String getFragmentShader() {
-            return FRAG_SHADER;
+            return SWIRL_FRAGMENT_SHADER;
         }
     }
 
