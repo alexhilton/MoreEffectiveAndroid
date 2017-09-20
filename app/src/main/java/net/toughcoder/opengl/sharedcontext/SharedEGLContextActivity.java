@@ -202,12 +202,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private GLSurfaceView mPreview;
     private GLSurfaceView mGrayscale;
     private GLSurfaceView mSwirl;
-    private GLSurfaceView mSphereRefraction;
+    private GLSurfaceView mSphere;
 
     private GLSurfaceView.Renderer mPreviewRenderer;
     private GLSurfaceView.Renderer mFilterRenderer;
     private GLSurfaceView.Renderer mSwirlRenderer;
-    private GLSurfaceView.Renderer mSphereRefractionRenderer;
+    private GLSurfaceView.Renderer mSphereRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,12 +251,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mSwirl.setRenderer(mSwirlRenderer);
         mSwirl.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mSwirl.setZOrderOnTop(true);
-        mSphereRefractionRenderer = new SphereRefractionRenderer();
-        mSphereRefraction = initGLSurfaceView(R.id.fisheye);
-        mSphereRefraction.setEGLContextFactory(mEGLContextFactory);
-        mSphereRefraction.setRenderer(mSphereRefractionRenderer);
-        mSphereRefraction.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        mSphereRefraction.setZOrderOnTop(true);
+        mSphereRenderer = new SphereRenderer();
+        mSphere = initGLSurfaceView(R.id.fisheye);
+        mSphere.setEGLContextFactory(mEGLContextFactory);
+        mSphere.setRenderer(mSphereRenderer);
+        mSphere.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mSphere.setZOrderOnTop(true);
 
         // init camera
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -285,7 +285,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview.requestRender();
         mGrayscale.requestRender();
         mSwirl.requestRender();
-        mSphereRefraction.requestRender();
+        mSphere.requestRender();
     }
 
     // Must be called in GLContext thread
@@ -438,7 +438,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
     }
 
-    private class SphereRefractionRenderer extends SurfaceTextureRenderer {
+    private class SphereRenderer extends SurfaceTextureRenderer {
         private static final String SPHERE_FRAGMENT_SHADER =
                 "#extension GL_OES_EGL_image_external : require\n" +
                 "varying highp vec2 textureCoords;\n" +
@@ -446,9 +446,11 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 "uniform samplerExternalOES uTextureSampler;\n" +
                 "\n" +
                 "highp vec2 center = vec2(.5, .5);\n" +
-                "highp float radius = .51;\n" +
-                "highp float aspectRatio = 1.1;\n" +
-                "highp float refractiveIndex = .71;\n" +
+                "highp float radius = .5;\n" +
+                "highp float aspectRatio = 1.;\n" +
+                "highp float refractiveIndex = 0.71;\n" +
+                "const highp vec3 lightPosition = vec3(-0.5, 0.5, 1.0);\n" +
+                "const highp vec3 ambientLightPosition = vec3(0.0, 0.0, 1.0);\n" +
                 "\n" +
                 "void main()\n" +
                 "{\n" +
@@ -461,9 +463,21 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 "  highp float normalizedDepth = radius * sqrt(1.0 - distanceFromCenter * distanceFromCenter);\n" +
                 "  highp vec3 sphereNormal = normalize(vec3(textureCoordinateToUse - center, normalizedDepth));\n" +
                 "\n" +
-                "  highp vec3 refractedVector = refract(vec3(0.0, 0.0, -1.0), sphereNormal, refractiveIndex);\n" +
+                "  highp vec3 refractedVector = 2.0 * refract(vec3(0.0, 0.0, -1.0), sphereNormal, refractiveIndex);\n" +
+                "  refractedVector.xy = -refractedVector.xy;\n" +
                 "\n" +
-                "  gl_FragColor = texture2D(uTextureSampler, (refractedVector.xy + 1.0) * 0.5) * checkForPresenceWithinSphere;\n" +
+                "  highp vec3 finalSphereColor = texture2D(uTextureSampler, (refractedVector.xy + 1.0) * 0.5).rgb;\n" +
+                "\n" +
+                "  // Grazing angle lighting\n" +
+                "  highp float lightingIntensity = 2.5 * (1.0 - pow(clamp(dot(ambientLightPosition, sphereNormal), 0.0, 1.0), 0.25));\n" +
+                "  finalSphereColor += lightingIntensity;\n" +
+                "\n" +
+                "  // Specular lighting\n" +
+                "  lightingIntensity  = clamp(dot(normalize(lightPosition), sphereNormal), 0.0, 1.0);\n" +
+                "  lightingIntensity  = pow(lightingIntensity, 15.0);\n" +
+                "  finalSphereColor += vec3(0.8, 0.8, 0.8) * lightingIntensity;\n" +
+                "\n" +
+                "  gl_FragColor = vec4(finalSphereColor, 1.0) * checkForPresenceWithinSphere;\n" +
                 "}\n";
 
         @Override
