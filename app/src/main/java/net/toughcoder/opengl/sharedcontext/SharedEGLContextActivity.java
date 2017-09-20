@@ -246,13 +246,13 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mGrayscale.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mGrayscale.setZOrderOnTop(true);
         mSwirlRenderer = new SwirlRenderer();
-        mSwirl = initGLSurfaceView(R.id.sketch);
+        mSwirl = initGLSurfaceView(R.id.swirl);
         mSwirl.setEGLContextFactory(mEGLContextFactory);
         mSwirl.setRenderer(mSwirlRenderer);
         mSwirl.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mSwirl.setZOrderOnTop(true);
         mSphereRenderer = new SphereRenderer();
-        mSphere = initGLSurfaceView(R.id.fisheye);
+        mSphere = initGLSurfaceView(R.id.sphere);
         mSphere.setEGLContextFactory(mEGLContextFactory);
         mSphere.setRenderer(mSphereRenderer);
         mSphere.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
