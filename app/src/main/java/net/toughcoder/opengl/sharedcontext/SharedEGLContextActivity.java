@@ -204,10 +204,10 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private GLSurfaceView mSwirl;
     private GLSurfaceView mSphere;
 
-    private GLSurfaceView.Renderer mPreviewRenderer;
-    private GLSurfaceView.Renderer mFilterRenderer;
-    private GLSurfaceView.Renderer mSwirlRenderer;
-    private GLSurfaceView.Renderer mSphereRenderer;
+    private SurfaceTextureRenderer mPreviewRenderer;
+    private SurfaceTextureRenderer mFilterRenderer;
+    private SurfaceTextureRenderer mSwirlRenderer;
+    private SurfaceTextureRenderer mSphereRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -278,6 +278,40 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         view.setPreserveEGLContextOnPause(true);
         view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         return view;
+    }
+
+    @Override
+    protected void onDestroy() {
+        mPreview.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+//                GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
+                mPreviewRenderer.destroy();
+                Log.d(TAG, "preview queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
+            }
+        });
+        mGrayscale.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+//                mFilterRenderer.destroy();
+                Log.d(TAG, "grayscale queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
+            }
+        });
+        mSwirl.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+//                mSwirlRenderer.destroy();
+                Log.d(TAG, "swirl queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
+            }
+        });
+        mSphere.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+//                mSphereRenderer.destroy();
+                Log.d(TAG, "sphere queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
+            }
+        });
+        super.onDestroy();
     }
 
     @Override
@@ -389,6 +423,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             if (!egl.eglDestroyContext(display, context)) {
                 Log.d(TAG, "Failed to destory context");
             }
+            Log.d(TAG, "destroyContext " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
         }
     }
 

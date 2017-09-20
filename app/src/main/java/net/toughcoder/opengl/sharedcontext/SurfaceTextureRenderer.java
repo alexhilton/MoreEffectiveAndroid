@@ -131,6 +131,10 @@ abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
         mUniformMatrix = GLES20.glGetUniformLocation(mProgram, "uSTMatrix");
     }
 
+    public final void destroy() {
+        GLES20.glDeleteProgram(mProgram);
+    }
+
     protected abstract SurfaceTexture getSurfaceTexture();
 
     protected abstract int getPreviewTexture();
