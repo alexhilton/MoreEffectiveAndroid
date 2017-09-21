@@ -28,6 +28,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
+import android.widget.Toast;
 
 import net.toughcoder.effectiveandroid.R;
 
@@ -230,22 +231,11 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 }
             }
         };
-        
+
         initViews();
 
-
-        // init camera
+        // init camera manager
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.CAMERA}, REQ_PERMISSION);
-            return;
-        } else {
-            try {
-                mCameraManager.openCamera(CAMERA, mSetupCallback, mCameraHandler);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void initViews() {
@@ -283,6 +273,54 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         view.setPreserveEGLContextOnPause(true);
         view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         return view;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        openCamera();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        closeCamera();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionsResult requestCode = " + requestCode + " permissions " + permissions + ", results " + grantResults);
+        if (requestCode == REQ_PERMISSION) {
+            if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Cannot work without camera", Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    private void openCamera() {
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {Manifest.permission.CAMERA}, REQ_PERMISSION);
+            return;
+        } else {
+            try {
+                mCameraManager.openCamera(CAMERA, mSetupCallback, mCameraHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void closeCamera() {
+        if (mSession != null) {
+            mSession.close();
+        }
+        if (mCameraDevice != null) {
+            mCameraDevice.close();
+        }
     }
 
     @Override
