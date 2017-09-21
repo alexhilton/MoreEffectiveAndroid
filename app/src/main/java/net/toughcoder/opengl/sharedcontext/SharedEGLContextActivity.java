@@ -230,7 +230,25 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 }
             }
         };
+        
+        initViews();
 
+
+        // init camera
+        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {Manifest.permission.CAMERA}, REQ_PERMISSION);
+            return;
+        } else {
+            try {
+                mCameraManager.openCamera(CAMERA, mSetupCallback, mCameraHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void initViews() {
         // Initialize GLSurfaceView
         mEGLContextFactory = new SharedEGLContextFactory();
         mPreviewRenderer = new PreviewRenderer();
@@ -257,19 +275,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mSphere.setRenderer(mSphereRenderer);
         mSphere.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mSphere.setZOrderOnTop(true);
-
-        // init camera
-        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.CAMERA}, REQ_PERMISSION);
-            return;
-        } else {
-            try {
-                mCameraManager.openCamera(CAMERA, mSetupCallback, mCameraHandler);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private GLSurfaceView initGLSurfaceView(int resId) {
