@@ -325,6 +325,19 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     @Override
     protected void onDestroy() {
+        releaseGLResources();
+        super.onDestroy();
+    }
+
+    /*
+     * How to release GL resources is a hard question.
+     * There are three things to break:
+     * 1. all should be called in GL Thread, which generates these resources.
+     * 2. There is no clean up callback from GL thread, even we got instantiation callback.
+     * 3. need to make sure release happen after all draw.
+     * Currently, no definite solution, unfortunately.
+     */
+    private void releaseGLResources() {
         mPreview.queueEvent(new Runnable() {
             @Override
             public void run() {
@@ -354,7 +367,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 Log.d(TAG, "sphere queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
             }
         });
-        super.onDestroy();
     }
 
     @Override
