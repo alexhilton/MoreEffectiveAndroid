@@ -84,7 +84,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
 
     // Need to wait for SurfaceTexture creation.
-    private void setupPreview(int targetWidth, int targetHeight) {
+    private void startPreview(int targetWidth, int targetHeight) {
         Log.d(TAG, "setuppreview device + " + mCameraDevice + ", surface " + mSurfaceTexture);
         mCameraHandler.removeMessages(MSG_START_PREVIEW);
         configPreviewSize(targetWidth, targetHeight);
@@ -225,7 +225,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 switch (msg.what) {
                     case MSG_START_PREVIEW: {
                         Size p = (Size) msg.obj;
-                        setupPreview(p.getWidth(), p.getHeight());
+                        startPreview(p.getWidth(), p.getHeight());
                         break;
                     }
                 }
