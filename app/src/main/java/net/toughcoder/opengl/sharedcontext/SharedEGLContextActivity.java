@@ -499,7 +499,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 "varying highp vec2 textureCoords;\n" +
                 "\n" +
                 "highp vec2 center = vec2(.5, .5);\n" +
-                "highp float radius = .5;\n" +
+                "highp float radius = .42;\n" +
                 "highp float angle = 1.;\n" +
                 "\n" +
                 "void main()\n" +
@@ -543,7 +543,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
                 "uniform samplerExternalOES uTextureSampler;\n" +
                 "\n" +
                 "highp vec2 center = vec2(.5, .5);\n" +
-                "highp float radius = .5;\n" +
+                "highp float radius = .42;\n" +
                 "highp float aspectRatio = 1.;\n" +
                 "highp float refractiveIndex = 0.71;\n" +
                 "const highp vec3 lightPosition = vec3(-0.5, 0.5, 1.0);\n" +
