@@ -60,6 +60,12 @@ abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
     private int mUniformLocation;
     private int mUniformMatrix;
 
+    // Dimension
+    private int mInputWidth = -1;
+    private int mInputHeight = -1;
+    private int mTargetWidth = -1;
+    private int mTargetHeight = -1;
+
     public SurfaceTextureRenderer() {
         mCubeBuffer = ByteBuffer.allocateDirect(CUBE.length * 4)
                 .order(ByteOrder.nativeOrder())
@@ -88,7 +94,10 @@ abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.d(TAG, "onSurfaceChanged");
+        mTargetWidth = width;
+        mTargetHeight = height;
         GLES20.glViewport(0, 0, width, height);
+        adjustDisplayScaling(TEXTURE_NO_ROTATION, mInputHeight, mInputWidth, width, height);
     }
 
     @Override
@@ -102,6 +111,7 @@ abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
         GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mCubeBuffer);
         GLES20.glEnableVertexAttribArray(mAttributePosition);
 
+        adjustDisplayScaling(TEXTURE_NO_ROTATION, mInputHeight, mInputWidth, mTargetWidth, mTargetHeight);
         mTextureBuffer.position(0);
         GLES20.glVertexAttribPointer(mTextureCoords, 2, GLES20.GL_FLOAT, false, 0, mTextureBuffer);
         GLES20.glEnableVertexAttribArray(mTextureCoords);
@@ -188,5 +198,47 @@ abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
             return 0;
         }
         return shader;
+    }
+
+    public void setInputDimension(int inputWidth, int inputHeight) {
+        mInputHeight = inputHeight;
+        mInputWidth = inputWidth;
+    }
+
+    private void adjustDisplayScaling(float[] textureCoords, int inputWidth, int inputHeight,
+                                      int targetWidth, int targetHeight) {
+        float outputWidth = targetWidth;
+        float outputHeight = targetHeight;
+
+        float ratio1 = outputWidth / inputWidth;
+        float ratio2 = outputHeight / inputHeight;
+        float ratioMax = Math.max(ratio1, ratio2);
+        int newInputWidth = Math.round(inputWidth * ratioMax);
+        int newInputHeight = Math.round(inputHeight * ratioMax);
+
+        float ratioWidth = newInputWidth / outputWidth;
+        float ratioHeight =  newInputHeight / outputHeight;
+
+        float distHorizontal = (1.0f - 1.0f / ratioWidth) / 2.0f;
+        float distVertical = (1.0f - 1.0f / ratioHeight) / 2.0f;
+        textureCoords = new float[] {
+                addDistance(textureCoords[0], distHorizontal), addDistance(textureCoords[1], distVertical),
+                addDistance(textureCoords[2], distHorizontal), addDistance(textureCoords[3], distVertical),
+                addDistance(textureCoords[4], distHorizontal), addDistance(textureCoords[5], distVertical),
+                addDistance(textureCoords[6], distHorizontal), addDistance(textureCoords[7], distVertical),
+        };
+
+        mTextureBuffer.clear();
+        mTextureBuffer.put(textureCoords).position(0);
+    }
+
+    private static float addDistance(float coordiate, float distance) {
+        if (coordiate > 0.5f) {
+            return coordiate - distance;
+        } else if (coordiate < 0.5f) {
+            return coordiate + distance;
+        } else {
+            return coordiate;
+        }
     }
 }

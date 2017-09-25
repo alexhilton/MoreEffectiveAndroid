@@ -140,9 +140,17 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             final Size bestPreviewSize = chooseOptimalPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), rotatedWidth, rotatedHeight);
             Log.d(TAG, "preview size w -> " + bestPreviewSize.getWidth() + ", height -> " + bestPreviewSize.getHeight());
             mSurfaceTexture.setDefaultBufferSize(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
+            configRenderers(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private void configRenderers(int width, int height) {
+        mPreviewRenderer.setInputDimension(width, height);
+        mSwirlRenderer.setInputDimension(width, height);
+        mSphereRenderer.setInputDimension(width, height);
+        mFilterRenderer.setInputDimension(width, height);
     }
 
     private Size chooseOptimalPreviewSize(Size[] choices, int targetWidth, int targetHeight) {
