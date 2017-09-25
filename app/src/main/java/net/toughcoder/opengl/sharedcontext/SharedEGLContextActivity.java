@@ -143,7 +143,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-        mSurfaceTexture.setDefaultBufferSize(1920, 1080);
     }
 
     private Size chooseOptimalPreviewSize(Size[] choices, int targetWidth, int targetHeight) {
