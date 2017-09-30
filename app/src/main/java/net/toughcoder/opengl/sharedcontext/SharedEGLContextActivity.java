@@ -55,7 +55,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private int mPreviewTexture;
     private CameraCaptureSession mSession;
     private CaptureRequest.Builder mPreviewRequestBuilder;
-    private SharedEGLContextFactory mEGLContextFactory;
 
     private Handler mMainHandler = new Handler() {
         @Override
@@ -207,10 +206,10 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private HandlerThread mCameraThread;
     private Handler mCameraHandler;
 
-    private GLSurfaceView mPreview;
-    private GLSurfaceView mGrayscale;
-    private GLSurfaceView mSwirl;
-    private GLSurfaceView mSphere;
+    private SharedContextGLSurfaceView mPreview;
+    private SharedContextGLSurfaceView mGrayscale;
+    private SharedContextGLSurfaceView mSwirl;
+    private SharedContextGLSurfaceView mSphere;
 
     private SurfaceTextureRenderer mPreviewRenderer;
     private SurfaceTextureRenderer mFilterRenderer;
@@ -247,39 +246,26 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     private void initViews() {
         // Initialize GLSurfaceView
-        mEGLContextFactory = new SharedEGLContextFactory();
         mPreviewRenderer = new PreviewRenderer();
-        mPreview = initGLSurfaceView(R.id.preview);
-        mPreview.setEGLContextFactory(mEGLContextFactory);
+        mPreview = (SharedContextGLSurfaceView) findViewById(R.id.preview);
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mPreview.setZOrderOnTop(false);
         mFilterRenderer = new GrayscaleRenderer();
-        mGrayscale = initGLSurfaceView(R.id.grayscale);
-        mGrayscale.setEGLContextFactory(mEGLContextFactory);
+        mGrayscale = (SharedContextGLSurfaceView) findViewById(R.id.grayscale);
         mGrayscale.setRenderer(mFilterRenderer);
         mGrayscale.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mGrayscale.setZOrderOnTop(true);
         mSwirlRenderer = new SwirlRenderer();
-        mSwirl = initGLSurfaceView(R.id.swirl);
-        mSwirl.setEGLContextFactory(mEGLContextFactory);
+        mSwirl = (SharedContextGLSurfaceView) findViewById(R.id.swirl);
         mSwirl.setRenderer(mSwirlRenderer);
         mSwirl.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mSwirl.setZOrderOnTop(true);
         mSphereRenderer = new SphereRenderer();
-        mSphere = initGLSurfaceView(R.id.sphere);
-        mSphere.setEGLContextFactory(mEGLContextFactory);
+        mSphere = (SharedContextGLSurfaceView) findViewById(R.id.sphere);
         mSphere.setRenderer(mSphereRenderer);
         mSphere.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mSphere.setZOrderOnTop(true);
-    }
-
-    private GLSurfaceView initGLSurfaceView(int resId) {
-        GLSurfaceView view = (GLSurfaceView) findViewById(resId);
-        view.setEGLContextClientVersion(2);
-        view.setPreserveEGLContextOnPause(true);
-        view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        return view;
     }
 
     @Override
@@ -475,28 +461,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         @Override
         protected String getFragmentShader() {
             return GRAYSCALE_FRAGMENT_SHADER;
-        }
-    }
-
-    public class SharedEGLContextFactory implements GLSurfaceView.EGLContextFactory {
-        private int CLIENT_VERSION = 0x3098;
-
-        public EGLContext mSharedContext;
-
-        @Override
-        public EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig) {
-            int[] attrib_list = {CLIENT_VERSION, 2, EGL10.EGL_NONE};
-            mSharedContext = egl.eglCreateContext(display,
-                    eglConfig, mSharedContext == null ? EGL10.EGL_NO_CONTEXT : mSharedContext, attrib_list);
-            return mSharedContext;
-        }
-
-        @Override
-        public void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context) {
-            if (!egl.eglDestroyContext(display, context)) {
-                Log.d(TAG, "Failed to destory context");
-            }
-            Log.d(TAG, "destroyContext " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
         }
     }
 

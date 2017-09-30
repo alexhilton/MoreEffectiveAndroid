@@ -6,12 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="net.toughcoder.opengl.sharedcontext.SharedEGLContextActivity">
-    <android.opengl.GLSurfaceView
+    <net.toughcoder.opengl.sharedcontext.SharedContextGLSurfaceView
         android:id="@+id/preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <android.opengl.GLSurfaceView
+    <net.toughcoder.opengl.sharedcontext.SharedContextGLSurfaceView
         android:id="@+id/grayscale"
         android:layout_height="160dip"
         android:layout_width="100dip"
@@ -20,7 +20,7 @@
         android:layout_marginTop="15dip"
         android:layout_marginRight="15dip"/>
 
-    <android.opengl.GLSurfaceView
+    <net.toughcoder.opengl.sharedcontext.SharedContextGLSurfaceView
         android:id="@+id/sphere"
         android:layout_height="160dip"
         android:layout_width="100dip"
@@ -28,7 +28,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="15dip"/>
 
-    <android.opengl.GLSurfaceView
+    <net.toughcoder.opengl.sharedcontext.SharedContextGLSurfaceView
         android:id="@+id/swirl"
         android:layout_height="160dip"
         android:layout_width="100dip"
