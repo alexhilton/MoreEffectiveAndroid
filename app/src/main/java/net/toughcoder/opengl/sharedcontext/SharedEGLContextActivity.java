@@ -285,7 +285,15 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume");
         openCamera();
+        // For not creation case
+        if (mSurfaceTexture != null && !mCameraHandler.hasMessages(MSG_START_PREVIEW)) {
+            Message msg = Message.obtain();
+            msg.what = MSG_START_PREVIEW;
+            msg.obj = new Size(mPreview.getWidth(), mPreview.getHeight());
+            mCameraHandler.sendMessage(msg);
+        }
     }
 
     @Override
@@ -413,10 +421,13 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             Log.d(TAG, "onSurfaceChanged");
             super.onSurfaceChanged(gl, width, height);
             // Able to start preview now.
-            Message msg = Message.obtain();
-            msg.what = MSG_START_PREVIEW;
-            msg.obj = new Size(width, height);
-            mCameraHandler.sendMessage(msg);
+            // When back from HOME, onResume will start preview first, no need second one.
+            if (mSession == null) {
+                Message msg = Message.obtain();
+                msg.what = MSG_START_PREVIEW;
+                msg.obj = new Size(width, height);
+                mCameraHandler.sendMessage(msg);
+            }
         }
 
         @Override
