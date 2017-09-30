@@ -39,6 +39,7 @@ public class MainActivity extends ExampleListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate inst -> " + savedInstanceState);
         setTitle(TAG);
 
         explainContext();
@@ -63,6 +64,18 @@ public class MainActivity extends ExampleListActivity {
         list.add(FragmentStateLossActivity.class);
         list.add(LibraryExampleList.class);
         return list;
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, "onRestart");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
     }
 
     @Override
