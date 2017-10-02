@@ -117,9 +117,12 @@
             android:name="net.toughcoder.libraries.retrofit2.RetrofitExampleActivity"
             android:theme="@android:style/Theme.Holo">
         </activity>
-        <activity android:name="net.toughcoder.camera.CameraColorEffectActivity"
+        <activity
+            android:name="net.toughcoder.camera.CameraColorEffectActivity"
             android:theme="@android:style/Theme.Holo"/>
         <activity android:name="net.toughcoder.opengl.sharedcontext.SharedEGLContextActivity">
+        </activity>
+        <activity android:name="net.toughcoder.opengl.miniglview.GLViewSampleActivity">
         </activity>
     </application>
 
