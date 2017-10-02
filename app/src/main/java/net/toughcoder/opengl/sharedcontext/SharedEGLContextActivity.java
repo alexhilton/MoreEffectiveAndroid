@@ -18,7 +18,6 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,10 +34,7 @@ import net.toughcoder.effectiveandroid.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.opengles.GL10;
 
 @TargetApi(Build.VERSION_CODES.M)
@@ -149,7 +145,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreviewRenderer.setInputDimension(width, height);
         mSwirlRenderer.setInputDimension(width, height);
         mSphereRenderer.setInputDimension(width, height);
-        mFilterRenderer.setInputDimension(width, height);
+        mGrayscaleRenderer.setInputDimension(width, height);
     }
 
     private Size chooseOptimalPreviewSize(Size[] choices, int targetWidth, int targetHeight) {
@@ -212,7 +208,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private SharedContextGLSurfaceView mSphere;
 
     private SurfaceTextureRenderer mPreviewRenderer;
-    private SurfaceTextureRenderer mFilterRenderer;
+    private SurfaceTextureRenderer mGrayscaleRenderer;
     private SurfaceTextureRenderer mSwirlRenderer;
     private SurfaceTextureRenderer mSphereRenderer;
 
@@ -250,9 +246,9 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview = (SharedContextGLSurfaceView) findViewById(R.id.preview);
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setZOrderOnTop(false);
-        mFilterRenderer = new GrayscaleRenderer();
+        mGrayscaleRenderer = new GrayscaleRenderer();
         mGrayscale = (SharedContextGLSurfaceView) findViewById(R.id.grayscale);
-        mGrayscale.setRenderer(mFilterRenderer);
+        mGrayscale.setRenderer(mGrayscaleRenderer);
         mGrayscale.setZOrderOnTop(true);
         mSwirlRenderer = new SwirlRenderer();
         mSwirl = (SharedContextGLSurfaceView) findViewById(R.id.swirl);
@@ -346,7 +342,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mGrayscale.queueEvent(new Runnable() {
             @Override
             public void run() {
-//                mFilterRenderer.destroy();
+//                mGrayscaleRenderer.destroy();
                 Log.d(TAG, "grayscale queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
             }
         });
