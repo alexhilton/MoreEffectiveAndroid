@@ -17,7 +17,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by alex on 17-9-16.
  */
 
-abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
+public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
     private static final String TAG = "PreviewRenderer";
     public final float[] CUBE = {
             -1.0f, -1.0f,
