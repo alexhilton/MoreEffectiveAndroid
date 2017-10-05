@@ -60,15 +60,21 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // All OpenGL ES API call should happen in this thread.
         private final List<Runnable> mJobQueue;
         private final Object mQueueLock;
+        private boolean mQuite;
 
         public GLThread() {
             mJobQueue = new LinkedList<>();
             mQueueLock = new Object();
+            mQuite = false;
         }
+
         @Override
         public void run() {
             while (true) {
                 executeAllJobs();
+                if (mQuite) {
+                    break;
+                }
                 if (mRenderer != null) {
                     // TODO: this is dangerous, though we know that no one would use GL object.
                     mRenderer.onDrawFrame(null);
@@ -92,6 +98,15 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private void initialize(SurfaceHolder holder) {
             // Initialize OpenGL ES context
+            final Runnable job = new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            };
+            synchronized (mQueueLock) {
+                mJobQueue.add(job);
+            }
         }
 
         public void onSurfaceChange(SurfaceHolder holder, int format, int width, int height) {
@@ -99,7 +114,16 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         public void onSurfaceDestroy(SurfaceHolder holder) {
-            //
+            // clean up and exit the run-loop
+            final Runnable exitJob = new Runnable() {
+                @Override
+                public void run() {
+                    mQuite = true;
+                }
+            };
+            synchronized (mQueueLock) {
+                mJobQueue.add(exitJob);
+            }
         }
     }
 }
