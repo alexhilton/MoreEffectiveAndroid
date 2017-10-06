@@ -1,8 +1,14 @@
 package net.toughcoder.opengl.miniglview;
 
 import android.content.Context;
+import android.opengl.EGL14;
+import android.opengl.EGLConfig;
+import android.opengl.EGLContext;
+import android.opengl.EGLDisplay;
+import android.opengl.EGLSurface;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -14,6 +20,7 @@ import java.util.List;
  */
 
 public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback {
+    private static final String TAG = "OpenGLESView";
     private GLSurfaceView.Renderer mRenderer;
     private GLThread mGLThread;
 
@@ -60,24 +67,39 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // All OpenGL ES API call should happen in this thread.
         private final List<Runnable> mJobQueue;
         private final Object mQueueLock;
-        private boolean mQuite;
+        private boolean mQuit;
+        private boolean mReadyToDraw;
+
+        private EGLContext mEGLContext;
+        private EGLSurface mEGLSurface;
+        private EGLDisplay mEGLDisplay;
 
         public GLThread() {
             mJobQueue = new LinkedList<>();
             mQueueLock = new Object();
-            mQuite = false;
+            mQuit = false;
+            mReadyToDraw = false;
+
+            mEGLContext = EGL14.EGL_NO_CONTEXT;
+            mEGLSurface = EGL14.EGL_NO_SURFACE;
+            mEGLDisplay = EGL14.EGL_NO_DISPLAY;
         }
 
         @Override
         public void run() {
             while (true) {
                 executeAllJobs();
-                if (mQuite) {
+                if (mQuit) {
                     break;
                 }
-                if (mRenderer != null) {
+                if (mRenderer != null && mReadyToDraw) {
                     // TODO: this is dangerous, though we know that no one would use GL object.
                     mRenderer.onDrawFrame(null);
+                }
+
+                if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
+                    Log.d(TAG, "Failed to swap buffers");
+                    break;
                 }
             }
         }
@@ -96,12 +118,12 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             start();
         }
 
-        private void initialize(SurfaceHolder holder) {
+        private void initialize(final SurfaceHolder holder) {
             // Initialize OpenGL ES context
             final Runnable job = new Runnable() {
                 @Override
                 public void run() {
-
+                    doInitialize(holder);
                 }
             };
             synchronized (mQueueLock) {
@@ -109,8 +131,79 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             }
         }
 
-        public void onSurfaceChange(SurfaceHolder holder, int format, int width, int height) {
-            //
+        private void doInitialize(SurfaceHolder holder) {
+            final EGLDisplay eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
+            if (eglDisplay == EGL14.EGL_NO_DISPLAY) {
+                Log.d(TAG, "Failed to get egl display");
+                mQuit = true;
+                return;
+            }
+            mEGLDisplay = eglDisplay;
+            final int[] versions = new int[2];
+            if (!EGL14.eglInitialize(eglDisplay, versions, 0, versions, 1)) {
+                Log.d(TAG, "Failed to initialize EGL display");
+                mQuit = true;
+                return;
+            }
+
+            final int[] attribList = {
+                    EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+                    EGL14.EGL_RED_SIZE, 8,
+                    EGL14.EGL_GREEN_SIZE, 8,
+                    EGL14.EGL_BLUE_SIZE, 8,
+                    EGL14.EGL_ALPHA_SIZE, 8,
+                    EGL14.EGL_NONE, // The attrib list is terminated by EGL_NONE
+            };
+            final EGLConfig[] configs = new EGLConfig[1];
+            final int[] numConfigs = new int[1];
+            if (!EGL14.eglChooseConfig(eglDisplay,
+                    attribList, 0,
+                    configs, 0,
+                    configs.length, numConfigs, 0)) {
+                Log.d(TAG, "Failed to choose config");
+                mQuit = true;
+                return;
+            }
+
+            final int[] contextAttribList = {
+                    EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
+                    EGL14.EGL_NONE,
+            };
+            final EGLContext context = EGL14.eglCreateContext(eglDisplay,
+                    configs[0], EGL14.EGL_NO_CONTEXT, contextAttribList, 0);
+            if (context == EGL14.EGL_NO_CONTEXT) {
+                Log.e(TAG, "failed to create context");
+                mQuit = true;
+                return;
+            }
+            mEGLContext = context;
+
+            final int[] surfaceAttribs = {
+                    EGL14.EGL_NONE,
+            };
+            final EGLSurface surface = EGL14.eglCreateWindowSurface(eglDisplay,
+                    configs[0], holder, surfaceAttribs, 0);
+            if (!EGL14.eglMakeCurrent(eglDisplay, surface, surface, context)) {
+                Log.d(TAG, "Failed to make current");
+                mQuit = true;
+                return;
+            }
+            mEGLSurface = surface;
+
+            mRenderer.onSurfaceCreated(null, null);
+        }
+
+        public void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
+            synchronized (mQueueLock) {
+                final Runnable job = new Runnable() {
+                    @Override
+                    public void run() {
+                        mRenderer.onSurfaceChanged(null, width, height);
+                        mReadyToDraw = true;
+                    }
+                };
+                mJobQueue.add(job);
+            }
         }
 
         public void onSurfaceDestroy(SurfaceHolder holder) {
@@ -118,7 +211,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             final Runnable exitJob = new Runnable() {
                 @Override
                 public void run() {
-                    mQuite = true;
+                    mQuit = true;
                 }
             };
             synchronized (mQueueLock) {

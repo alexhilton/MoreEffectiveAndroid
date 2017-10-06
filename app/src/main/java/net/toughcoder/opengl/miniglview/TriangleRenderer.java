@@ -18,6 +18,7 @@ import static net.toughcoder.opengl.sharedcontext.SurfaceTextureRenderer.loadPro
  */
 
 public class TriangleRenderer implements GLSurfaceView.Renderer {
+    private static final String TAG = "TriangleRenderer";
     private static final String VERTEX =
             "attribute vec4 position;\n" +
                     "void main() {\n" +
@@ -40,6 +41,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        Log.d(TAG, "onSurfaceCreated");
         GLES20.glDisable(GLES20.GL_DITHER);
         GLES20.glClearColor(0, 0, 0, 0);
         GLES20.glEnable(GLES20.GL_CULL_FACE);
@@ -54,6 +56,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        Log.d(TAG, "onSurfaceChanged");
         GLES20.glViewport(0, 0, width, height);
     }
 
@@ -68,7 +71,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnableVertexAttribArray(mAttributePosition);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
-        Log.d("lala", "draw " + GLES20.glGetError());
+        Log.d(TAG, "draw Frame" + GLES20.glGetError());
         GLES20.glDisableVertexAttribArray(mAttributePosition);
     }
 }

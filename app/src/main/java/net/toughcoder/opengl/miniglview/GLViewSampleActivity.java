@@ -19,12 +19,14 @@ public class GLViewSampleActivity extends Activity {
     }
 
     private void setupGLView() {
-        GLSurfaceView glview = new GLSurfaceView(this);
-        glview.setEGLContextClientVersion(2);
-        glview.setPreserveEGLContextOnPause(true);
-        glview.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+//        GLSurfaceView glview = new GLSurfaceView(this);
+//        glview.setEGLContextClientVersion(2);
+//        glview.setPreserveEGLContextOnPause(true);
+//        glview.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+//        glview.setRenderer(new TriangleRenderer());
+//        glview.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        OpenGLESView glview = new OpenGLESView(this);
         glview.setRenderer(new TriangleRenderer());
-        glview.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         FrameLayout content = (FrameLayout) findViewById(android.R.id.content);
         content.addView(glview);
     }
