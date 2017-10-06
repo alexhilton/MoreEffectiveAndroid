@@ -2,6 +2,7 @@ package net.toughcoder.opengl.miniglview;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
@@ -39,6 +40,10 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     };
     private FloatBuffer mTriangle;
 
+    private static final boolean sDEBUG = true;
+    private static int sFps = 0;
+    private static long sLastFps = -1;
+
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.d(TAG, "onSurfaceCreated");
@@ -52,6 +57,9 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
         mTriangle.put(TRIANGLE).position(0);
+
+        sFps = 0;
+        sLastFps = -1;
     }
 
     @Override
@@ -62,6 +70,19 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        if (sDEBUG) {
+            sFps++;
+            if (sLastFps == -1) {
+                sLastFps = SystemClock.uptimeMillis();
+            } else {
+                final long now = SystemClock.uptimeMillis();
+                if (now - sLastFps >= 1000) {
+                    Log.d(TAG, "FPS -> " + sFps);
+                    sFps = 0;
+                    sLastFps = now;
+                }
+            }
+        }
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         GLES20.glUseProgram(mProgram);
@@ -71,7 +92,6 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnableVertexAttribArray(mAttributePosition);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
-        Log.d(TAG, "draw Frame" + GLES20.glGetError());
         GLES20.glDisableVertexAttribArray(mAttributePosition);
     }
 }
