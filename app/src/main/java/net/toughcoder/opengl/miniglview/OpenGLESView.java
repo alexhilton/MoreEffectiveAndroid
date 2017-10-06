@@ -92,14 +92,13 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 if (mQuit) {
                     break;
                 }
-                if (mRenderer != null && mReadyToDraw) {
+                if (!mQuit && mRenderer != null && mReadyToDraw) {
                     // TODO: this is dangerous, though we know that no one would use GL object.
                     mRenderer.onDrawFrame(null);
-                }
-
-                if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
-                    Log.d(TAG, "Failed to swap buffers");
-                    break;
+                    if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
+                        Log.d(TAG, "Failed to swap buffers");
+                        break;
+                    }
                 }
             }
         }
@@ -207,15 +206,30 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         public void onSurfaceDestroy(SurfaceHolder holder) {
+            Log.d(TAG, "onSurfaceDestroy");
             // clean up and exit the run-loop
             final Runnable exitJob = new Runnable() {
                 @Override
                 public void run() {
+                    doCleanup();
                     mQuit = true;
+                    mReadyToDraw = false;
                 }
             };
             synchronized (mQueueLock) {
                 mJobQueue.add(exitJob);
+            }
+        }
+
+        private void doCleanup() {
+            if (mEGLSurface != EGL14.EGL_NO_SURFACE && !EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)) {
+                Log.d(TAG, "Failed to destroy surface");
+            }
+            if (mEGLContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)) {
+                Log.d(TAG, "failed to destroy context");
+            }
+            if (mEGLDisplay != EGL14.EGL_NO_DISPLAY && !EGL14.eglTerminate(mEGLDisplay)) {
+                Log.d(TAG, "Failed to terminate display");
             }
         }
     }
