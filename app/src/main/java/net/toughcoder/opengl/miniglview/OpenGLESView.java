@@ -65,8 +65,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
     private class GLThread extends Thread {
         // All OpenGL ES API call should happen in this thread.
-        private final List<Runnable> mJobQueue;
-        private final Object mQueueLock;
+        private final List<Runnable> mPreJobQueue;
+        private final List<Runnable> mPostJobQueue;
         private boolean mQuit;
         private boolean mReadyToDraw;
 
@@ -75,8 +75,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         private EGLDisplay mEGLDisplay;
 
         public GLThread() {
-            mJobQueue = new LinkedList<>();
-            mQueueLock = new Object();
+            mPreJobQueue = new LinkedList<>();
+            mPostJobQueue = new LinkedList<>();
             mQuit = false;
             mReadyToDraw = false;
 
@@ -88,25 +88,39 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         @Override
         public void run() {
             while (true) {
-                executeAllJobs();
+                executePreJobs();
+                // Check for prerequisite errors
                 if (mQuit) {
                     break;
                 }
-                if (!mQuit && mRenderer != null && mReadyToDraw) {
+                if (mRenderer != null && mReadyToDraw) {
                     // TODO: this is dangerous, though we know that no one would use GL object.
                     mRenderer.onDrawFrame(null);
                     if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
                         Log.d(TAG, "Failed to swap buffers");
-                        break;
                     }
+                }
+                executePostJobs();
+                // check for termination
+                if (mQuit) {
+                    break;
                 }
             }
         }
 
-        private void executeAllJobs() {
-            synchronized (mQueueLock) {
-                while (!mJobQueue.isEmpty()) {
-                    Runnable job = mJobQueue.remove(0);
+        private void executePreJobs() {
+            synchronized (mPreJobQueue) {
+                while (!mPreJobQueue.isEmpty()) {
+                    Runnable job = mPreJobQueue.remove(0);
+                    job.run();
+                }
+            }
+        }
+
+        private void executePostJobs() {
+            synchronized (mPostJobQueue) {
+                while (!mPostJobQueue.isEmpty()) {
+                    Runnable job = mPostJobQueue.remove(0);
                     job.run();
                 }
             }
@@ -125,8 +139,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     doInitialize(holder);
                 }
             };
-            synchronized (mQueueLock) {
-                mJobQueue.add(job);
+            synchronized (mPreJobQueue) {
+                mPreJobQueue.add(job);
             }
         }
 
@@ -193,7 +207,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         public void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
-            synchronized (mQueueLock) {
+            synchronized (mPreJobQueue) {
                 final Runnable job = new Runnable() {
                     @Override
                     public void run() {
@@ -201,7 +215,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                         mReadyToDraw = true;
                     }
                 };
-                mJobQueue.add(job);
+                mPreJobQueue.add(job);
             }
         }
 
@@ -213,15 +227,15 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 public void run() {
                     doCleanup();
                     mQuit = true;
-                    mReadyToDraw = false;
                 }
             };
-            synchronized (mQueueLock) {
-                mJobQueue.add(exitJob);
+            synchronized (mPostJobQueue) {
+                mPostJobQueue.add(exitJob);
             }
         }
 
         private void doCleanup() {
+            Log.d(TAG, "doCleanup");
             if (mEGLSurface != EGL14.EGL_NO_SURFACE && !EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)) {
                 Log.d(TAG, "Failed to destroy surface");
             }
