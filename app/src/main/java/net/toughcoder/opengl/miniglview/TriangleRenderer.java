@@ -40,6 +40,13 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     };
     private FloatBuffer mTriangle;
 
+    // Move the triangle
+    private float mCenterX = 0.0f;
+    private float mCenterY = -0.4f;
+    private float mXStep = 0.05f;
+    private float mYStep = 0.05f;
+    private float mRadius = 0.2f;
+
     private static final boolean sDEBUG = true;
     private static int sFps = 0;
     private static long sLastFps = -1;
@@ -86,12 +93,41 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         GLES20.glUseProgram(mProgram);
-
+        move();
+        forgeTriangle();
+        mTriangle.put(TRIANGLE);
         mTriangle.position(0);
         GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mTriangle);
         GLES20.glEnableVertexAttribArray(mAttributePosition);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
         GLES20.glDisableVertexAttribArray(mAttributePosition);
+        final int error = GLES20.glGetError();
+        if (error != GLES20.GL_NO_ERROR) {
+            Log.d(TAG, "renderer draw there is error ->" + Integer.toHexString(error));
+        }
+    }
+
+    private void move() {
+        mCenterX += mXStep;
+        mCenterY += mYStep;
+        // close to boundary
+        if (mCenterX + mRadius > 1f || mCenterX - mRadius < -1f) {
+            mCenterX -= mXStep;
+            mXStep *= -1f;
+        }
+        if (mCenterY + mRadius > 1f || mCenterY - mRadius < -1f) {
+            mCenterY -= mYStep;
+            mYStep *= -1f;
+        }
+    }
+
+    private void forgeTriangle() {
+        TRIANGLE[0] = mCenterX - mRadius;
+        TRIANGLE[1] = mCenterY - mRadius;
+        TRIANGLE[2] = mCenterX + mRadius;
+        TRIANGLE[3] = mCenterY - mRadius;
+        TRIANGLE[4] = mCenterX;
+        TRIANGLE[5] = mCenterY + mRadius;
     }
 }
