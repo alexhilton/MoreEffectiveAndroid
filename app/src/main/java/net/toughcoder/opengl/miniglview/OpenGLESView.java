@@ -45,6 +45,9 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
     }
 
     public void setRenderer(Renderer renderer) {
+        if (renderer == null) {
+            throw new IllegalArgumentException("Renderer cannot be null.");
+        }
         mRenderer = renderer;
     }
 
