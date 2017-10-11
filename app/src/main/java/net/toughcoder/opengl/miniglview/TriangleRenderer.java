@@ -47,6 +47,8 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
     private float mYStep = 0.05f;
     private float mRadius = 0.2f;
 
+    private int mTexture;
+
     private static final boolean sDEBUG = true;
     private static int sFps = 0;
     private static long sLastFps = -1;
@@ -106,6 +108,10 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
                 .asFloatBuffer();
         mTriangle.put(TRIANGLE).position(0);
 
+        int[] tex = new int[1];
+        GLES20.glGenTextures(1, tex, 0);
+        mTexture = tex[0];
+
         sFps = 0;
         sLastFps = -1;
     }
@@ -151,5 +157,6 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
     @Override
     public void onContextDestroy() {
         GLES20.glDeleteProgram(mProgram);
+        GLES20.glDeleteTextures(1, new int[] {mTexture}, 0);
     }
 }
