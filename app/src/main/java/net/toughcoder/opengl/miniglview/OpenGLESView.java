@@ -213,7 +213,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private void logEGLError(String msg) {
             final int err = EGL14.eglGetError();
-            Log.d(TAG, msg + ": " + Integer.toHexString(err));
+            Log.w(TAG, msg + ": " + Integer.toHexString(err));
         }
 
         public void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
