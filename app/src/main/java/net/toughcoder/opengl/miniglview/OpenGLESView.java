@@ -101,8 +101,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 if (mRenderer != null && mReadyToDraw) {
                     mRenderer.onDrawFrame();
                     if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
-                        final int err = EGL14.eglGetError();
-                        Log.d(TAG, "Failed to swap buffers: " + Integer.toHexString(err));
+                        logEGLError("Failed to swap buffers");
                     }
                 }
                 executePostJobs();
@@ -153,14 +152,14 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         private void doInitialize(SurfaceHolder holder) {
             final EGLDisplay eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
             if (eglDisplay == EGL14.EGL_NO_DISPLAY) {
-                Log.d(TAG, "Failed to get egl display");
+                logEGLError("Failed to get egl display");
                 mQuit = true;
                 return;
             }
             mEGLDisplay = eglDisplay;
             final int[] versions = new int[2];
             if (!EGL14.eglInitialize(eglDisplay, versions, 0, versions, 1)) {
-                Log.d(TAG, "Failed to initialize EGL display");
+                logEGLError("Failed to initialize EGL display");
                 mQuit = true;
                 return;
             }
@@ -179,7 +178,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     attribList, 0,
                     configs, 0,
                     configs.length, numConfigs, 0)) {
-                Log.d(TAG, "Failed to choose config");
+                logEGLError("Failed to choose config");
                 mQuit = true;
                 return;
             }
@@ -203,13 +202,18 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             final EGLSurface surface = EGL14.eglCreateWindowSurface(eglDisplay,
                     configs[0], holder, surfaceAttribs, 0);
             if (!EGL14.eglMakeCurrent(eglDisplay, surface, surface, context)) {
-                Log.d(TAG, "Failed to make current");
+                logEGLError("Failed to make current");
                 mQuit = true;
                 return;
             }
             mEGLSurface = surface;
 
             mRenderer.onContextCreate();
+        }
+
+        private void logEGLError(String msg) {
+            final int err = EGL14.eglGetError();
+            Log.d(TAG, msg + ": " + Integer.toHexString(err));
         }
 
         public void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
@@ -256,13 +260,13 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             Log.d(TAG, "doCleanup");
             mRenderer.onContextDestroy();
             if (mEGLSurface != EGL14.EGL_NO_SURFACE && !EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)) {
-                Log.d(TAG, "Failed to destroy surface");
+                logEGLError("Failed to destroy surface");
             }
             if (mEGLContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)) {
-                Log.d(TAG, "failed to destroy context");
+                logEGLError("failed to destroy context");
             }
             if (mEGLDisplay != EGL14.EGL_NO_DISPLAY && !EGL14.eglTerminate(mEGLDisplay)) {
-                Log.d(TAG, "Failed to terminate display");
+                logEGLError("Failed to terminate display");
             }
         }
     }
