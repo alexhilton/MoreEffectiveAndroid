@@ -18,7 +18,7 @@ import static net.toughcoder.opengl.sharedcontext.SurfaceTextureRenderer.loadPro
  * Created by alex on 10/2/17.
  */
 
-public class TriangleRenderer implements GLSurfaceView.Renderer {
+public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Renderer {
     private static final String TAG = "TriangleRenderer";
     private static final String VERTEX =
             "attribute vec4 position;\n" +
@@ -54,6 +54,47 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.d(TAG, "onSurfaceCreated");
+        onContextCreate();
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        Log.d(TAG, "onSurfaceChanged");
+        onContextChange(width, height);
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        onDrawFrame();
+    }
+
+    private void move() {
+        mCenterX += mXStep;
+        mCenterY += mYStep;
+        // close to boundary
+        if (mCenterX + mRadius > 1f || mCenterX - mRadius < -1f) {
+            mCenterX -= mXStep;
+            mXStep *= -1f;
+        }
+        if (mCenterY + mRadius > 1f || mCenterY - mRadius < -1f) {
+            mCenterY -= mYStep;
+            mYStep *= -1f;
+        }
+    }
+
+    private void forgeTriangle() {
+        TRIANGLE[0] = mCenterX - mRadius;
+        TRIANGLE[1] = mCenterY - mRadius;
+        TRIANGLE[2] = mCenterX + mRadius;
+        TRIANGLE[3] = mCenterY - mRadius;
+        TRIANGLE[4] = mCenterX;
+        TRIANGLE[5] = mCenterY + mRadius;
+    }
+
+    // Our version renderer methods.
+
+    @Override
+    public void onContextCreate() {
         GLES20.glDisable(GLES20.GL_DITHER);
         GLES20.glClearColor(0, 0, 0, 0);
         GLES20.glEnable(GLES20.GL_CULL_FACE);
@@ -70,13 +111,12 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-        Log.d(TAG, "onSurfaceChanged");
+    public void onContextChange(int width, int height) {
         GLES20.glViewport(0, 0, width, height);
     }
 
     @Override
-    public void onDrawFrame(GL10 gl) {
+    public void onDrawFrame() {
         if (sDEBUG) {
             sFps++;
             if (sLastFps == -1) {
@@ -108,26 +148,8 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    private void move() {
-        mCenterX += mXStep;
-        mCenterY += mYStep;
-        // close to boundary
-        if (mCenterX + mRadius > 1f || mCenterX - mRadius < -1f) {
-            mCenterX -= mXStep;
-            mXStep *= -1f;
-        }
-        if (mCenterY + mRadius > 1f || mCenterY - mRadius < -1f) {
-            mCenterY -= mYStep;
-            mYStep *= -1f;
-        }
-    }
-
-    private void forgeTriangle() {
-        TRIANGLE[0] = mCenterX - mRadius;
-        TRIANGLE[1] = mCenterY - mRadius;
-        TRIANGLE[2] = mCenterX + mRadius;
-        TRIANGLE[3] = mCenterY - mRadius;
-        TRIANGLE[4] = mCenterX;
-        TRIANGLE[5] = mCenterY + mRadius;
+    @Override
+    public void onContextDestroy() {
+        GLES20.glDeleteProgram(mProgram);
     }
 }

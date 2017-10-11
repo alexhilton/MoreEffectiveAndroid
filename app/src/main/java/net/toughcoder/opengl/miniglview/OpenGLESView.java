@@ -21,7 +21,7 @@ import java.util.List;
 
 public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback {
     private static final String TAG = "OpenGLESView";
-    private GLSurfaceView.Renderer mRenderer;
+    private Renderer mRenderer;
     private GLThread mGLThread;
 
     public OpenGLESView(Context context) {
@@ -44,7 +44,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         getHolder().addCallback(this);
     }
 
-    public void setRenderer(GLSurfaceView.Renderer renderer) {
+    public void setRenderer(Renderer renderer) {
         mRenderer = renderer;
     }
 
@@ -96,8 +96,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     break;
                 }
                 if (mRenderer != null && mReadyToDraw) {
-                    // TODO: this is dangerous, though we know that no one would use GL object.
-                    mRenderer.onDrawFrame(null);
+                    mRenderer.onDrawFrame();
                     if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
                         final int err = EGL14.eglGetError();
                         Log.d(TAG, "Failed to swap buffers: " + Integer.toHexString(err));
@@ -207,7 +206,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             }
             mEGLSurface = surface;
 
-            mRenderer.onSurfaceCreated(null, null);
+            mRenderer.onContextCreate();
         }
 
         public void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
@@ -215,7 +214,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 final Runnable job = new Runnable() {
                     @Override
                     public void run() {
-                        mRenderer.onSurfaceChanged(null, width, height);
+                        mRenderer.onContextChange(width, height);
                         mReadyToDraw = true;
                     }
                 };
@@ -252,6 +251,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private void doCleanup() {
             Log.d(TAG, "doCleanup");
+            mRenderer.onContextDestroy();
             if (mEGLSurface != EGL14.EGL_NO_SURFACE && !EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)) {
                 Log.d(TAG, "Failed to destroy surface");
             }
@@ -262,5 +262,12 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 Log.d(TAG, "Failed to terminate display");
             }
         }
+    }
+
+    public interface Renderer {
+        void onContextCreate();
+        void onContextChange(int width, int height);
+        void onDrawFrame();
+        void onContextDestroy();
     }
 }
