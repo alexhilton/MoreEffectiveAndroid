@@ -67,6 +67,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        Log.d(TAG, "onDrawFrame");
         onDrawFrame();
     }
 
@@ -97,6 +98,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
 
     @Override
     public void onContextCreate() {
+        Log.d(TAG, "onContextCreate");
         GLES20.glDisable(GLES20.GL_DITHER);
         GLES20.glClearColor(0, 0, 0, 0);
         GLES20.glEnable(GLES20.GL_CULL_FACE);
@@ -118,11 +120,13 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
 
     @Override
     public void onContextChange(int width, int height) {
+        Log.d(TAG, "onContextChange");
         GLES20.glViewport(0, 0, width, height);
     }
 
     @Override
     public void onDrawFrame() {
+        Log.d(TAG, "onDrawFrame");
         if (sDEBUG) {
             sFps++;
             if (sLastFps == -1) {
@@ -156,6 +160,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
 
     @Override
     public void onContextDestroy() {
+        Log.d(TAG, "onContextDestroy");
         GLES20.glDeleteProgram(mProgram);
         GLES20.glDeleteTextures(1, new int[] {mTexture}, 0);
     }

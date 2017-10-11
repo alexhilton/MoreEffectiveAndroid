@@ -51,6 +51,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         mRenderer = renderer;
     }
 
+    public void setRenderType(RenderType type) {
+        mGLThread.setRenderType(type);
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         mGLThread.onSurfaceCreate(holder);
@@ -73,6 +77,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private boolean mQuit;
         private boolean mReadyToDraw;
+        private RenderType mRenderType;
 
         private EGLContext mEGLContext;
         private EGLSurface mEGLSurface;
@@ -84,6 +89,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
             mQuit = false;
             mReadyToDraw = false;
+            mRenderType = RenderType.CONTINUOUSLY;
 
             mEGLContext = EGL14.EGL_NO_CONTEXT;
             mEGLSurface = EGL14.EGL_NO_SURFACE;
@@ -110,6 +116,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     break;
                 }
             }
+        }
+
+        void setRenderType(RenderType type) {
+            mRenderType = type;
         }
 
         private void executePreJobs() {
@@ -269,6 +279,11 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 logEGLError("Failed to terminate display");
             }
         }
+    }
+
+    public enum RenderType {
+        WHEN_DIRTY,
+        CONTINUOUSLY,
     }
 
     public interface Renderer {
