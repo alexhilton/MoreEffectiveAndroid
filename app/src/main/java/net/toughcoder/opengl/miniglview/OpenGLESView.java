@@ -123,6 +123,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     Runnable job = mPostJobQueue.remove(0);
                     job.run();
                 }
+                mPostJobQueue.notify();
             }
         }
 
@@ -219,6 +220,9 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             }
         }
 
+        // Surface will be destroyed after this method return.
+        // As a result, should not call any GLES methods after this method return.
+        // So, should not return before all draw finish.
         public void onSurfaceDestroy(SurfaceHolder holder) {
             Log.d(TAG, "onSurfaceDestroy");
             // clean up and exit the run-loop
@@ -231,6 +235,15 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             };
             synchronized (mPostJobQueue) {
                 mPostJobQueue.add(exitJob);
+            }
+            Thread.yield(); // Let render thread run and we wait.
+            synchronized (mPostJobQueue) {
+                while (!mPostJobQueue.isEmpty()) {
+                    try {
+                        mPostJobQueue.wait();
+                    } catch (InterruptedException e) {
+                    }
+                }
             }
         }
 
