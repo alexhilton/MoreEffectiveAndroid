@@ -104,7 +104,16 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 if (mQuit) {
                     break;
                 }
-                if (mRenderer != null && mReadyToDraw) {
+                synchronized (this) {
+                    while (!ableToDraw()) {
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                if (ableToDraw()) {
                     mRenderer.onDrawFrame();
                     if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
                         logEGLError("Failed to swap buffers");
@@ -116,6 +125,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     break;
                 }
             }
+        }
+
+        private boolean ableToDraw() {
+            return mRenderer != null && mReadyToDraw && mRenderType == RenderType.CONTINUOUSLY;
         }
 
         void setRenderType(RenderType type) {
