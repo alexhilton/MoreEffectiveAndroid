@@ -67,6 +67,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // All OpenGL ES API call should happen in this thread.
         private final List<Runnable> mPreJobQueue;
         private final List<Runnable> mPostJobQueue;
+
         private boolean mQuit;
         private boolean mReadyToDraw;
 
@@ -77,6 +78,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         public GLThread() {
             mPreJobQueue = new LinkedList<>();
             mPostJobQueue = new LinkedList<>();
+
             mQuit = false;
             mReadyToDraw = false;
 
@@ -97,7 +99,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     // TODO: this is dangerous, though we know that no one would use GL object.
                     mRenderer.onDrawFrame(null);
                     if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
-                        Log.d(TAG, "Failed to swap buffers");
+                        final int err = EGL14.eglGetError();
+                        Log.d(TAG, "Failed to swap buffers: " + Integer.toHexString(err));
                     }
                 }
                 executePostJobs();
