@@ -1,7 +1,6 @@
 package net.toughcoder.opengl.miniglview;
 
 import android.app.Activity;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.widget.FrameLayout;
 
@@ -27,6 +26,7 @@ public class GLViewSampleActivity extends Activity {
 //        glview.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         OpenGLESView glview = new OpenGLESView(this);
         glview.setRenderer(new TriangleRenderer());
+        glview.setRenderMode(OpenGLESView.RenderType.WHEN_DIRTY);
         FrameLayout content = (FrameLayout) findViewById(android.R.id.content);
         content.addView(glview);
     }

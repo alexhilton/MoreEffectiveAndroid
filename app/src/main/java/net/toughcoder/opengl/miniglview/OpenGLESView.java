@@ -51,7 +51,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         mRenderer = renderer;
     }
 
-    public void setRenderType(RenderType type) {
+    public void setRenderMode(RenderType type) {
         mGLThread.setRenderType(type);
     }
 
@@ -181,16 +181,18 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private void executeRenderJob() {
             synchronized (mRenderJobQueue) {
-                while (mRenderJobQueue.isEmpty()) {
+                if (mRenderJobQueue.isEmpty()) {
                     try {
                         mRenderJobQueue.wait();
                     } catch (InterruptedException e) {
                     }
                 }
-                final Runnable job = mRenderJobQueue.get(0);
-                job.run();
-                if (mRenderType == RenderType.WHEN_DIRTY) {
-                    mRenderJobQueue.clear();
+                if (!mRenderJobQueue.isEmpty()) {
+                    final Runnable job = mRenderJobQueue.get(0);
+                    job.run();
+                    if (mRenderType == RenderType.WHEN_DIRTY) {
+                        mRenderJobQueue.clear();
+                    }
                 }
             }
         }
@@ -298,6 +300,11 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // So, should not return before all draw finish.
         public void onSurfaceDestroy(SurfaceHolder holder) {
             Log.d(TAG, "onSurfaceDestroy");
+            if (mRenderType == RenderType.WHEN_DIRTY) {
+                synchronized (mRenderJobQueue) {
+                    mRenderJobQueue.notify();
+                }
+            }
             // clean up and exit the run-loop
             final Runnable exitJob = new Runnable() {
                 @Override
@@ -310,11 +317,13 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 mPostJobQueue.add(exitJob);
             }
             Thread.yield(); // Let render thread run and we wait.
-            synchronized (mPostJobQueue) {
-                while (!mPostJobQueue.isEmpty()) {
-                    try {
-                        mPostJobQueue.wait();
-                    } catch (InterruptedException e) {
+            if (mRenderType == RenderType.CONTINUOUSLY) {
+                synchronized (mPostJobQueue) {
+                    while (!mPostJobQueue.isEmpty()) {
+                        try {
+                            mPostJobQueue.wait();
+                        } catch (InterruptedException e) {
+                        }
                     }
                 }
             }
