@@ -55,6 +55,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         mGLThread.setRenderType(type);
     }
 
+    public void requestRender() {
+        mGLThread.requestRender();
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         mGLThread.onSurfaceCreate(holder);
@@ -74,6 +78,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // All OpenGL ES API call should happen in this thread.
         private final List<Runnable> mPreJobQueue;
         private final List<Runnable> mPostJobQueue;
+        private final List<Runnable> mRenderJobQueue;
 
         private boolean mQuit;
         private boolean mReadyToDraw;
@@ -83,17 +88,43 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         private EGLSurface mEGLSurface;
         private EGLDisplay mEGLDisplay;
 
+        private final Runnable mRenderJob = new Runnable() {
+            @Override
+            public void run() {
+                if (ableToDraw()) {
+                    mRenderer.onDrawFrame();
+                    if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
+                        logEGLError("Failed to swap buffers");
+                    }
+                }
+            }
+        };
+
         public GLThread() {
             mPreJobQueue = new LinkedList<>();
             mPostJobQueue = new LinkedList<>();
+            mRenderJobQueue = new LinkedList<>();
 
             mQuit = false;
             mReadyToDraw = false;
             mRenderType = RenderType.CONTINUOUSLY;
+            initRenderJob();
 
             mEGLContext = EGL14.EGL_NO_CONTEXT;
             mEGLSurface = EGL14.EGL_NO_SURFACE;
             mEGLDisplay = EGL14.EGL_NO_DISPLAY;
+        }
+
+        // Must call after initialize render type
+        private void initRenderJob() {
+            synchronized (mRenderJobQueue) {
+                if (mRenderType == RenderType.CONTINUOUSLY) {
+                    mRenderJobQueue.add(mRenderJob);
+                } else {
+                    mRenderJobQueue.clear();
+                }
+                mRenderJobQueue.notify();
+            }
         }
 
         @Override
@@ -104,21 +135,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 if (mQuit) {
                     break;
                 }
-                synchronized (this) {
-                    while (!ableToDraw()) {
-                        try {
-                            wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                if (ableToDraw()) {
-                    mRenderer.onDrawFrame();
-                    if (!EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)) {
-                        logEGLError("Failed to swap buffers");
-                    }
-                }
+                executeRenderJob();
                 executePostJobs();
                 // check for termination
                 if (mQuit) {
@@ -133,6 +150,14 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         void setRenderType(RenderType type) {
             mRenderType = type;
+            initRenderJob();
+        }
+
+        void requestRender() {
+            synchronized (mRenderJobQueue) {
+                mRenderJobQueue.add(mRenderJob);
+                mRenderJobQueue.notify();
+            }
         }
 
         private void executePreJobs() {
@@ -151,6 +176,22 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     job.run();
                 }
                 mPostJobQueue.notify();
+            }
+        }
+
+        private void executeRenderJob() {
+            synchronized (mRenderJobQueue) {
+                while (mRenderJobQueue.isEmpty()) {
+                    try {
+                        mRenderJobQueue.wait();
+                    } catch (InterruptedException e) {
+                    }
+                }
+                final Runnable job = mRenderJobQueue.get(0);
+                job.run();
+                if (mRenderType == RenderType.WHEN_DIRTY) {
+                    mRenderJobQueue.clear();
+                }
             }
         }
 
