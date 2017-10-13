@@ -6,7 +6,6 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
-import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -51,8 +50,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         mRenderer = renderer;
     }
 
-    public void setRenderMode(RenderType type) {
-        mGLThread.setRenderType(type);
+    public void setRenderMode(RenderMode type) {
+        mGLThread.setRenderMode(type);
     }
 
     public void requestRender() {
@@ -82,7 +81,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private boolean mQuit;
         private boolean mReadyToDraw;
-        private RenderType mRenderType;
+        private RenderMode mRenderMode;
 
         private EGLContext mEGLContext;
         private EGLSurface mEGLSurface;
@@ -107,7 +106,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
             mQuit = false;
             mReadyToDraw = false;
-            mRenderType = RenderType.CONTINUOUSLY;
+            mRenderMode = RenderMode.CONTINUOUSLY;
             initRenderJob();
 
             mEGLContext = EGL14.EGL_NO_CONTEXT;
@@ -118,7 +117,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // Must call after initialize render type
         private void initRenderJob() {
             synchronized (mRenderJobQueue) {
-                if (mRenderType == RenderType.CONTINUOUSLY) {
+                if (mRenderMode == RenderMode.CONTINUOUSLY) {
                     mRenderJobQueue.add(mRenderJob);
                 } else {
                     mRenderJobQueue.clear();
@@ -145,11 +144,11 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private boolean ableToDraw() {
-            return mRenderer != null && mReadyToDraw && mRenderType == RenderType.CONTINUOUSLY;
+            return mRenderer != null && mReadyToDraw && mRenderMode == RenderMode.CONTINUOUSLY;
         }
 
-        private void setRenderType(RenderType type) {
-            mRenderType = type;
+        private void setRenderMode(RenderMode mode) {
+            mRenderMode = mode;
             initRenderJob();
         }
 
@@ -190,7 +189,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 if (!mRenderJobQueue.isEmpty()) {
                     final Runnable job = mRenderJobQueue.get(0);
                     job.run();
-                    if (mRenderType == RenderType.WHEN_DIRTY) {
+                    if (mRenderMode == RenderMode.WHEN_DIRTY) {
                         mRenderJobQueue.clear();
                     }
                 }
@@ -300,7 +299,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // So, should not return before all draw finish.
         private void onSurfaceDestroy(SurfaceHolder holder) {
             Log.d(TAG, "onSurfaceDestroy");
-            if (mRenderType == RenderType.WHEN_DIRTY) {
+            if (mRenderMode == RenderMode.WHEN_DIRTY) {
                 synchronized (mRenderJobQueue) {
                     mRenderJobQueue.notify();
                 }
@@ -317,7 +316,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 mPostJobQueue.add(exitJob);
             }
 
-            if (mRenderType == RenderType.CONTINUOUSLY) {
+            if (mRenderMode == RenderMode.CONTINUOUSLY) {
                 Thread.yield(); // Let render thread run and we wait.
                 synchronized (mPostJobQueue) {
                     while (!mPostJobQueue.isEmpty()) {
@@ -345,7 +344,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
     }
 
-    public enum RenderType {
+    public enum RenderMode {
         WHEN_DIRTY,
         CONTINUOUSLY,
     }

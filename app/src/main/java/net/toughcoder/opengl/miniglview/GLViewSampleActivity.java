@@ -26,7 +26,7 @@ public class GLViewSampleActivity extends Activity {
 //        glview.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         OpenGLESView glview = new OpenGLESView(this);
         glview.setRenderer(new TriangleRenderer());
-        glview.setRenderMode(OpenGLESView.RenderType.WHEN_DIRTY);
+        glview.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         FrameLayout content = (FrameLayout) findViewById(android.R.id.content);
         content.addView(glview);
     }
