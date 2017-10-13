@@ -144,7 +144,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private boolean ableToDraw() {
-            return mRenderer != null && mReadyToDraw && mRenderMode == RenderMode.CONTINUOUSLY;
+            return mRenderer != null && mReadyToDraw;
         }
 
         private void setRenderMode(RenderMode mode) {
@@ -153,6 +153,9 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private void requestRender() {
+            if (mRenderMode == RenderMode.CONTINUOUSLY) {
+                return;
+            }
             synchronized (mRenderJobQueue) {
                 mRenderJobQueue.add(mRenderJob);
                 mRenderJobQueue.notify();
