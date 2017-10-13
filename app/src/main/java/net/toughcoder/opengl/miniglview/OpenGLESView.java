@@ -316,8 +316,9 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             synchronized (mPostJobQueue) {
                 mPostJobQueue.add(exitJob);
             }
-            Thread.yield(); // Let render thread run and we wait.
+
             if (mRenderType == RenderType.CONTINUOUSLY) {
+                Thread.yield(); // Let render thread run and we wait.
                 synchronized (mPostJobQueue) {
                     while (!mPostJobQueue.isEmpty()) {
                         try {
