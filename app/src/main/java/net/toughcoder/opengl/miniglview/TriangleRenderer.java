@@ -1,9 +1,14 @@
 package net.toughcoder.opengl.miniglview;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.os.SystemClock;
 import android.util.Log;
+
+import net.toughcoder.effectiveandroid.R;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,23 +27,39 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
     private static final String TAG = "TriangleRenderer";
     private static final String VERTEX =
             "attribute vec4 position;\n" +
+                    "attribute vec4 inputTextureCoords;\n" +
+                    "varying vec2 textureCoords;\n" +
                     "void main() {\n" +
+                    "  textureCoords = inputTextureCoords.xy;\n" +
                     "  gl_Position = position;\n" +
                     "}";
     private static final String FRAGMENT =
             "precision highp float;\n" +
+                    "varying highp vec2 textureCoords;\n" +
+                    "uniform sampler2D uTexture;\n" +
                     "void main() {\n" +
-                    "  gl_FragColor = vec4(.5, .5, 0, 1);\n" +
+                    "  gl_FragColor = texture2D(uTexture, textureCoords);\n" +
                     "}";
 
     private int mProgram;
     private int mAttributePosition;
+    private int mAttribTextureCoords;
+    private int mUniformTexture;
+
     public final float[] TRIANGLE = {
             -.5f, -.5f,
             .5f, -.5f,
-            .0f, .5f,
+            -.5f, .5f,
+            .5f, .5f,
+    };
+    private final float[] TEXTURE_COORDS = {
+            0f, 1f,
+            1f, 1f,
+            0f, 0f,
+            1f, 0f,
     };
     private FloatBuffer mTriangle;
+    private FloatBuffer mTextureBuffer;
 
     // Move the triangle
     private float mCenterX = 0.0f;
@@ -48,6 +69,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
     private float mRadius = 0.2f;
 
     private int mTexture;
+    private Bitmap mImage;
 
     private static final boolean sDEBUG = true;
     private static int sFps = 0;
@@ -90,8 +112,10 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
         TRIANGLE[1] = mCenterY - mRadius;
         TRIANGLE[2] = mCenterX + mRadius;
         TRIANGLE[3] = mCenterY - mRadius;
-        TRIANGLE[4] = mCenterX;
+        TRIANGLE[4] = mCenterX - mRadius;
         TRIANGLE[5] = mCenterY + mRadius;
+        TRIANGLE[6] = mCenterX + mRadius;
+        TRIANGLE[7] = mCenterY + mRadius;
     }
 
     // Our version renderer methods.
@@ -105,14 +129,20 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         mProgram = loadProgram(VERTEX, FRAGMENT);
         mAttributePosition = GLES20.glGetAttribLocation(mProgram, "position");
+        mAttribTextureCoords = GLES20.glGetAttribLocation(mProgram, "inputTextureCoords");
+        mUniformTexture = GLES20.glGetUniformLocation(mProgram, "uTexture");
+
         mTriangle = ByteBuffer.allocateDirect(TRIANGLE.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
         mTriangle.put(TRIANGLE).position(0);
+        mTextureBuffer = ByteBuffer.allocateDirect(TEXTURE_COORDS.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        mTextureBuffer.put(TEXTURE_COORDS).position(0);
 
-        int[] tex = new int[1];
-        GLES20.glGenTextures(1, tex, 0);
-        mTexture = tex[0];
+        mImage = BitmapFactory.decodeResource(GLViewSampleActivity.sContext.getResources(), R.raw.basketball);
+        mTexture = loadTexture(mImage);
 
         sFps = 0;
         sLastFps = -1;
@@ -149,9 +179,20 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
         mTriangle.position(0);
         GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mTriangle);
         GLES20.glEnableVertexAttribArray(mAttributePosition);
+        mTextureBuffer.position(0);
+        GLES20.glVertexAttribPointer(mAttribTextureCoords, 2, GLES20.GL_FLOAT, false, 0, mTextureBuffer);
+        GLES20.glEnableVertexAttribArray(mAttribTextureCoords);
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glUniform1i(mUniformTexture, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, TRIANGLE.length / 2);
+
         GLES20.glDisableVertexAttribArray(mAttributePosition);
+        GLES20.glDisableVertexAttribArray(mAttribTextureCoords);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
         final int error = GLES20.glGetError();
         if (error != GLES20.GL_NO_ERROR) {
             Log.d(TAG, "renderer draw there is error ->" + Integer.toHexString(error));
@@ -163,5 +204,19 @@ public class TriangleRenderer implements GLSurfaceView.Renderer, OpenGLESView.Re
         Log.d(TAG, "onContextDestroy");
         GLES20.glDeleteProgram(mProgram);
         GLES20.glDeleteTextures(1, new int[] {mTexture}, 0);
+    }
+
+    private int loadTexture(Bitmap bitmap) {
+        int[] textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+        return textures[0];
     }
 }

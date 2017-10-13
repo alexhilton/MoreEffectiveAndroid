@@ -1,6 +1,7 @@
 package net.toughcoder.opengl.miniglview;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -11,6 +12,7 @@ import net.toughcoder.effectiveandroid.R;
 public class GLViewSampleActivity extends Activity {
     private static final String TAG = "GLViewSample";
     private static final int MSG_RENDER = 0x01;
+    static Context sContext;
 
     private Handler mMainHandler = new Handler() {
         @Override
@@ -27,6 +29,7 @@ public class GLViewSampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sContext = this;
         setTitle(TAG);
         setContentView(R.layout.activity_glview_sample);
         setupGLView();
@@ -41,10 +44,10 @@ public class GLViewSampleActivity extends Activity {
 //        glview.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         OpenGLESView glview = new OpenGLESView(this);
         glview.setRenderer(new TriangleRenderer());
-        glview.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
+//        glview.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         FrameLayout content = (FrameLayout) findViewById(android.R.id.content);
         content.addView(glview);
-        requestRender(glview);
+//        requestRender(glview);
     }
 
     private void requestRender(OpenGLESView view) {
@@ -60,5 +63,6 @@ public class GLViewSampleActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         mMainHandler.removeMessages(MSG_RENDER);
+        sContext = null;
     }
 }
