@@ -148,12 +148,12 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             return mRenderer != null && mReadyToDraw && mRenderType == RenderType.CONTINUOUSLY;
         }
 
-        void setRenderType(RenderType type) {
+        private void setRenderType(RenderType type) {
             mRenderType = type;
             initRenderJob();
         }
 
-        void requestRender() {
+        private void requestRender() {
             synchronized (mRenderJobQueue) {
                 mRenderJobQueue.add(mRenderJob);
                 mRenderJobQueue.notify();
@@ -197,7 +197,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             }
         }
 
-        public void onSurfaceCreate(SurfaceHolder holder) {
+        private void onSurfaceCreate(SurfaceHolder holder) {
             initialize(holder);
             start();
         }
@@ -282,7 +282,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             Log.w(TAG, msg + ": " + Integer.toHexString(err));
         }
 
-        public void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
+        private void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
             synchronized (mPreJobQueue) {
                 final Runnable job = new Runnable() {
                     @Override
@@ -298,7 +298,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // Surface will be destroyed after this method return.
         // As a result, should not call any GLES methods after this method return.
         // So, should not return before all draw finish.
-        public void onSurfaceDestroy(SurfaceHolder holder) {
+        private void onSurfaceDestroy(SurfaceHolder holder) {
             Log.d(TAG, "onSurfaceDestroy");
             if (mRenderType == RenderType.WHEN_DIRTY) {
                 synchronized (mRenderJobQueue) {
