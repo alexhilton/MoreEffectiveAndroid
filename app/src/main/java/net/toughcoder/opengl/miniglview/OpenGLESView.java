@@ -87,6 +87,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         private EGLSurface mEGLSurface;
         private EGLDisplay mEGLDisplay;
 
+        private volatile boolean mAlive;
+
         private final Runnable mRenderJob = new Runnable() {
             @Override
             public void run() {
@@ -106,6 +108,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
             mQuit = false;
             mReadyToDraw = false;
+            mAlive = false; // Only alive between surface created and surface destroyed.
             mRenderMode = RenderMode.CONTINUOUSLY;
             initRenderJob();
 
@@ -153,7 +156,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private void requestRender() {
-            if (mRenderMode == RenderMode.CONTINUOUSLY) {
+            if (mRenderMode == RenderMode.CONTINUOUSLY || !mAlive) {
                 return;
             }
             synchronized (mRenderJobQueue) {
@@ -200,6 +203,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private void onSurfaceCreate(SurfaceHolder holder) {
+            mAlive = true;
             initialize(holder);
             start();
         }
@@ -302,11 +306,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         // So, should not return before all draw finish.
         private void onSurfaceDestroy(SurfaceHolder holder) {
             Log.d(TAG, "onSurfaceDestroy");
-            if (mRenderMode == RenderMode.WHEN_DIRTY) {
-                synchronized (mRenderJobQueue) {
-                    mRenderJobQueue.notify();
-                }
-            }
+            mAlive = false;
             // clean up and exit the run-loop
             final Runnable exitJob = new Runnable() {
                 @Override
@@ -319,14 +319,31 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 mPostJobQueue.add(exitJob);
             }
 
-            if (mRenderMode == RenderMode.CONTINUOUSLY) {
-                Thread.yield(); // Let render thread run and we wait.
-                synchronized (mPostJobQueue) {
-                    while (!mPostJobQueue.isEmpty()) {
+            if (mRenderMode == RenderMode.WHEN_DIRTY) {
+                // Interrupt render queue block
+                synchronized (mRenderJobQueue) {
+                    mRenderJobQueue.notify();
+                }
+                Thread.yield();
+                // Render queue will never be empty for continuous mode, as a result
+                // should never wait for render queue empty for continuous mode.
+                synchronized (mRenderJobQueue) {
+                    while (!mRenderJobQueue.isEmpty()) {
                         try {
-                            mPostJobQueue.wait();
+                            mRenderJobQueue.wait();
                         } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
+                    }
+                }
+            }
+
+            Thread.yield(); // Let render thread run and we wait.
+            synchronized (mPostJobQueue) {
+                while (!mPostJobQueue.isEmpty()) {
+                    try {
+                        mPostJobQueue.wait();
+                    } catch (InterruptedException e) {
                     }
                 }
             }
