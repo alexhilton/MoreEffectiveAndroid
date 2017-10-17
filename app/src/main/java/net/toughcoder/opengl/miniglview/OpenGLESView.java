@@ -6,6 +6,7 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
+import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -22,6 +23,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
     private static final String TAG = "OpenGLESView";
     private Renderer mRenderer;
     private GLThread mGLThread;
+    private static EGLContext sSharedContext = EGL14.EGL_NO_CONTEXT;
 
     public OpenGLESView(Context context) {
         super(context);
@@ -58,6 +60,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         mGLThread.requestRender();
     }
 
+    public void shareEGLContext() {
+        mGLThread.shareEGLContext();
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         mGLThread.onSurfaceCreate(holder);
@@ -89,6 +95,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         private volatile boolean mAlive;
 
+        private boolean mShareEGLContext;
+
         private final Runnable mRenderJob = new Runnable() {
             @Override
             public void run() {
@@ -107,6 +115,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             mRenderJobQueue = new LinkedList<>();
 
             mAlive = false; // Only alive between surface created and surface destroyed.
+            mShareEGLContext = false;
             mRenderMode = RenderMode.CONTINUOUSLY;
         }
 
@@ -170,6 +179,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 mRenderJobQueue.add(mRenderJob);
                 mRenderJobQueue.notify();
             }
+        }
+
+        private void shareEGLContext() {
+            mShareEGLContext = true;
         }
 
         private void executePreJobs() {
@@ -267,14 +280,19 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
                     EGL14.EGL_NONE,
             };
+            final EGLContext shared =
+                    mShareEGLContext && sSharedContext != EGL14.EGL_NO_CONTEXT ? sSharedContext : EGL14.EGL_NO_CONTEXT;
             final EGLContext context = EGL14.eglCreateContext(eglDisplay,
-                    configs[0], EGL14.EGL_NO_CONTEXT, contextAttribList, 0);
+                    configs[0], shared, contextAttribList, 0);
             if (context == EGL14.EGL_NO_CONTEXT) {
                 Log.e(TAG, "failed to create context");
                 mQuit = true;
                 return;
             }
             mEGLContext = context;
+            if (mShareEGLContext && sSharedContext == EGL14.EGL_NO_CONTEXT) {
+                sSharedContext = context;
+            }
 
             final int[] surfaceAttribs = {
                     EGL14.EGL_NONE,
