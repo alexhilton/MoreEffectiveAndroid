@@ -30,6 +30,7 @@ import android.view.Surface;
 import android.widget.Toast;
 
 import net.toughcoder.effectiveandroid.R;
+import net.toughcoder.opengl.miniglview.OpenGLESView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -202,10 +203,10 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private HandlerThread mCameraThread;
     private Handler mCameraHandler;
 
-    private SharedContextGLSurfaceView mPreview;
-    private SharedContextGLSurfaceView mGrayscale;
-    private SharedContextGLSurfaceView mSwirl;
-    private SharedContextGLSurfaceView mSphere;
+    private OpenGLESView mPreview;
+    private OpenGLESView mGrayscale;
+    private OpenGLESView mSwirl;
+    private OpenGLESView mSphere;
 
     private SurfaceTextureRenderer mPreviewRenderer;
     private SurfaceTextureRenderer mGrayscaleRenderer;
@@ -243,19 +244,23 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private void initViews() {
         // Initialize GLSurfaceView
         mPreviewRenderer = new PreviewRenderer();
-        mPreview = (SharedContextGLSurfaceView) findViewById(R.id.preview);
+        mPreview = (OpenGLESView) findViewById(R.id.preview);
+        mPreview.shareEGLContext();
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setZOrderOnTop(false);
         mGrayscaleRenderer = new GrayscaleRenderer();
-        mGrayscale = (SharedContextGLSurfaceView) findViewById(R.id.grayscale);
+        mGrayscale = (OpenGLESView) findViewById(R.id.grayscale);
+        mGrayscale.shareEGLContext();
         mGrayscale.setRenderer(mGrayscaleRenderer);
         mGrayscale.setZOrderOnTop(true);
         mSwirlRenderer = new SwirlRenderer();
-        mSwirl = (SharedContextGLSurfaceView) findViewById(R.id.swirl);
+        mSwirl = (OpenGLESView) findViewById(R.id.swirl);
+        mSwirl.shareEGLContext();
         mSwirl.setRenderer(mSwirlRenderer);
         mSwirl.setZOrderOnTop(true);
         mSphereRenderer = new SphereRenderer();
-        mSphere = (SharedContextGLSurfaceView) findViewById(R.id.sphere);
+        mSphere = (OpenGLESView) findViewById(R.id.sphere);
+        mSphere.shareEGLContext();
         mSphere.setRenderer(mSphereRenderer);
         mSphere.setZOrderOnTop(true);
     }
@@ -331,35 +336,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
      * Currently, no definite solution, unfortunately.
      */
     private void releaseGLResources() {
-        mPreview.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-//                GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
-                mPreviewRenderer.destroy();
-                Log.d(TAG, "preview queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
-            }
-        });
-        mGrayscale.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-//                mGrayscaleRenderer.destroy();
-                Log.d(TAG, "grayscale queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
-            }
-        });
-        mSwirl.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-//                mSwirlRenderer.destroy();
-                Log.d(TAG, "swirl queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
-            }
-        });
-        mSphere.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-//                mSphereRenderer.destroy();
-                Log.d(TAG, "sphere queue " + Thread.currentThread().getName() + ":" + Thread.currentThread().getId());
-            }
-        });
     }
 
     @Override
@@ -388,16 +364,16 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         private static final String TAG = "PreviewRenderer";
 
         @Override
-        public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        public void onContextCreate() {
             Log.d(TAG, "onSurfaceCreated");
             initializeSurfaceTexture();
-            super.onSurfaceCreated(gl, config);
+            super.onContextCreate();
         }
 
         @Override
-        public void onSurfaceChanged(GL10 gl, int width, int height) {
+        public void onContextChange(int width, int height) {
             Log.d(TAG, "onSurfaceChanged");
-            super.onSurfaceChanged(gl, width, height);
+            super.onContextChange(width, height);
             // Able to start preview now.
             // When back from HOME, onResume will start preview first, no need second one.
             if (mSession == null) {
@@ -409,9 +385,9 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         }
 
         @Override
-        public void onDrawFrame(GL10 gl) {
+        public void onDrawFrame() {
             mSurfaceTexture.updateTexImage();
-            super.onDrawFrame(gl);
+            super.onDrawFrame();
         }
 
         @Override

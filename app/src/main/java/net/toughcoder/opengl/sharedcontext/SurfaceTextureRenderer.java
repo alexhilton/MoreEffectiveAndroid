@@ -6,6 +6,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
+import net.toughcoder.opengl.miniglview.OpenGLESView;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -17,7 +19,8 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by alex on 17-9-16.
  */
 
-public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
+public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer,
+        OpenGLESView.Renderer {
     private static final String TAG = "PreviewRenderer";
     public final float[] CUBE = {
             -1.0f, -1.0f,
@@ -81,56 +84,18 @@ public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.d(TAG, "onSurfaceCreated");
-
-        // Initialize GL stuff
-        GLES20.glDisable(GLES20.GL_DITHER);
-        GLES20.glClearColor(0, 0, 0, 0);
-        GLES20.glEnable(GLES20.GL_CULL_FACE);
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-
-        init();
+        onContextCreate();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.d(TAG, "onSurfaceChanged");
-        mTargetWidth = width;
-        mTargetHeight = height;
-        GLES20.glViewport(0, 0, width, height);
-        adjustDisplayScaling(TEXTURE_NO_ROTATION, mInputHeight, mInputWidth, width, height);
+        onContextChange(width, height);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        GLES20.glUseProgram(mProgram);
-
-        mCubeBuffer.position(0);
-        GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mCubeBuffer);
-        GLES20.glEnableVertexAttribArray(mAttributePosition);
-
-        adjustDisplayScaling(TEXTURE_NO_ROTATION, mInputHeight, mInputWidth, mTargetWidth, mTargetHeight);
-        mTextureBuffer.position(0);
-        GLES20.glVertexAttribPointer(mTextureCoords, 2, GLES20.GL_FLOAT, false, 0, mTextureBuffer);
-        GLES20.glEnableVertexAttribArray(mTextureCoords);
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glUniform1i(mUniformLocation, 0);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, getPreviewTexture());
-
-        float[] matrix = new float[16];
-        getSurfaceTexture().getTransformMatrix(matrix);
-        GLES20.glUniformMatrix4fv(mUniformMatrix, 1, false, matrix, 0);
-        final int error = GLES20.glGetError();
-        if (error != 0) {
-            Log.e("render", "render error " + String.format("0x%x", error));
-        }
-
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-        GLES20.glDisableVertexAttribArray(mAttributePosition);
-        GLES20.glDisableVertexAttribArray(mTextureCoords);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        onDrawFrame();
     }
 
     public final void init() {
@@ -240,5 +205,62 @@ public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer {
         } else {
             return coordiate;
         }
+    }
+
+    @Override
+    public void onContextCreate() {
+        // Initialize GL stuff
+        GLES20.glDisable(GLES20.GL_DITHER);
+        GLES20.glClearColor(0, 0, 0, 0);
+        GLES20.glEnable(GLES20.GL_CULL_FACE);
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+
+        init();
+    }
+
+    @Override
+    public void onContextChange(int width, int height) {
+        mTargetWidth = width;
+        mTargetHeight = height;
+        GLES20.glViewport(0, 0, width, height);
+        adjustDisplayScaling(TEXTURE_NO_ROTATION, mInputHeight, mInputWidth, width, height);
+    }
+
+    @Override
+    public void onDrawFrame() {
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glUseProgram(mProgram);
+
+        mCubeBuffer.position(0);
+        GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mCubeBuffer);
+        GLES20.glEnableVertexAttribArray(mAttributePosition);
+
+        adjustDisplayScaling(TEXTURE_NO_ROTATION, mInputHeight, mInputWidth, mTargetWidth, mTargetHeight);
+        mTextureBuffer.position(0);
+        GLES20.glVertexAttribPointer(mTextureCoords, 2, GLES20.GL_FLOAT, false, 0, mTextureBuffer);
+        GLES20.glEnableVertexAttribArray(mTextureCoords);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glUniform1i(mUniformLocation, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, getPreviewTexture());
+
+        float[] matrix = new float[16];
+        getSurfaceTexture().getTransformMatrix(matrix);
+        GLES20.glUniformMatrix4fv(mUniformMatrix, 1, false, matrix, 0);
+        final int error = GLES20.glGetError();
+        if (error != 0) {
+            Log.e("render", "render error " + String.format("0x%x", error));
+        }
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+        GLES20.glDisableVertexAttribArray(mAttributePosition);
+        GLES20.glDisableVertexAttribArray(mTextureCoords);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+    }
+
+    @Override
+    public void onContextDestroy() {
+
     }
 }
