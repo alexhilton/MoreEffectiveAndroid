@@ -3,7 +3,6 @@ package net.toughcoder.opengl.sharedcontext;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import net.toughcoder.opengl.miniglview.OpenGLESView;
@@ -12,15 +11,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
-
 /**
  * Created by alex on 17-9-16.
  */
 
-public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer,
-        OpenGLESView.Renderer {
+public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
     private static final String TAG = "PreviewRenderer";
     public final float[] CUBE = {
             -1.0f, -1.0f,
@@ -81,33 +76,12 @@ public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer,
         mTextureBuffer.put(TEXTURE_NO_ROTATION).position(0);
     }
 
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        Log.d(TAG, "onSurfaceCreated");
-        onContextCreate();
-    }
-
-    @Override
-    public void onSurfaceChanged(GL10 gl, int width, int height) {
-        Log.d(TAG, "onSurfaceChanged");
-        onContextChange(width, height);
-    }
-
-    @Override
-    public void onDrawFrame(GL10 gl) {
-        onDrawFrame();
-    }
-
     public final void init() {
         mProgram = loadProgram(getVertexShader(), getFragmentShader());
         mAttributePosition = GLES20.glGetAttribLocation(mProgram, "position");
         mTextureCoords = GLES20.glGetAttribLocation(mProgram, "inputTextureCoords");
         mUniformLocation = GLES20.glGetUniformLocation(mProgram, "uTextureSampler");
         mUniformMatrix = GLES20.glGetUniformLocation(mProgram, "uSTMatrix");
-    }
-
-    public final void destroy() {
-        GLES20.glDeleteProgram(mProgram);
     }
 
     protected abstract SurfaceTexture getSurfaceTexture();
@@ -261,6 +235,6 @@ public abstract class SurfaceTextureRenderer implements GLSurfaceView.Renderer,
 
     @Override
     public void onContextDestroy() {
-
+        GLES20.glDeleteProgram(mProgram);
     }
 }
