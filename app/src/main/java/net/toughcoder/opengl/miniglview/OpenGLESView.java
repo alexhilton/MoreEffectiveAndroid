@@ -50,6 +50,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             throw new IllegalArgumentException("Renderer cannot be null.");
         }
         mRenderer = renderer;
+        mGLThread.start();
     }
 
     public void setRenderMode(RenderMode mode) {
@@ -226,7 +227,6 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             init();
             mAlive = true;
             initializeEGL(holder);
-            start();
         }
 
         private void initializeEGL(final SurfaceHolder holder) {
