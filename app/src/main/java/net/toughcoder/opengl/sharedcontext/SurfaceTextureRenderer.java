@@ -17,7 +17,7 @@ import java.nio.FloatBuffer;
  */
 
 public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
-    private static final String TAG = "PreviewRenderer";
+    private static final String TAG = "SurfaceTextureRenderer";
     public final float[] CUBE = {
             -1.0f, -1.0f,
             1.0f, -1.0f,
