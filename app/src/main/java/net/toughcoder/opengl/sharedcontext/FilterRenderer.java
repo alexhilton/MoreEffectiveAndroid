@@ -2,6 +2,10 @@ package net.toughcoder.opengl.sharedcontext;
 
 import android.graphics.SurfaceTexture;
 
+import net.toughcoder.effectiveandroid.R;
+
+import java.util.HashMap;
+
 /**
  * Created by alex on 17-9-30.
  */
@@ -109,5 +113,17 @@ public class FilterRenderer extends SurfaceTextureRenderer {
     @Override
     protected String getFragmentShader() {
         return mFragmentShader;
+    }
+
+    private static HashMap<Integer, String> sFragShaderTable = new HashMap<>();
+    static {
+        sFragShaderTable.put(R.id.grayscale, GRAYSCALE_FRAGMENT_SHADER);
+        sFragShaderTable.put(R.id.swirl, SWIRL_FRAGMENT_SHADER);
+        sFragShaderTable.put(R.id.sphere, SPHERE_FRAGMENT_SHADER);
+    }
+
+    // Factory method
+    public static FilterRenderer createRenderer(int viewId, SurfaceTexture surfaceTexture, int texture) {
+        return new FilterRenderer(surfaceTexture, texture, sFragShaderTable.get(viewId));
     }
 }

@@ -35,9 +35,6 @@ import net.toughcoder.opengl.miniglview.OpenGLESView;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
-
 @TargetApi(Build.VERSION_CODES.M)
 public class SharedEGLContextActivity extends Activity implements SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = "SharedEGLContext";
@@ -144,9 +141,9 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     private void configRenderers(int width, int height) {
         mPreviewRenderer.setInputDimension(width, height);
-        mSwirlRenderer.setInputDimension(width, height);
-        mSphereRenderer.setInputDimension(width, height);
-        mGrayscaleRenderer.setInputDimension(width, height);
+        for (Filter filter : mFilters) {
+            filter.setInputDimension(width, height);
+        }
     }
 
     private Size chooseOptimalPreviewSize(Size[] choices, int targetWidth, int targetHeight) {
@@ -204,14 +201,9 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private Handler mCameraHandler;
 
     private OpenGLESView mPreview;
-    private OpenGLESView mGrayscale;
-    private OpenGLESView mSwirl;
-    private OpenGLESView mSphere;
-
     private SurfaceTextureRenderer mPreviewRenderer;
-    private SurfaceTextureRenderer mGrayscaleRenderer;
-    private SurfaceTextureRenderer mSwirlRenderer;
-    private SurfaceTextureRenderer mSphereRenderer;
+
+    private List<Filter> mFilters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,21 +224,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview.shareEGLContext();
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setZOrderOnTop(false);
-        mGrayscaleRenderer = new GrayscaleRenderer();
-        mGrayscale = (OpenGLESView) findViewById(R.id.grayscale);
-        mGrayscale.shareEGLContext();
-        mGrayscale.setRenderer(mGrayscaleRenderer);
-        mGrayscale.setZOrderOnTop(true);
-        mSwirlRenderer = new SwirlRenderer();
-        mSwirl = (OpenGLESView) findViewById(R.id.swirl);
-        mSwirl.shareEGLContext();
-        mSwirl.setRenderer(mSwirlRenderer);
-        mSwirl.setZOrderOnTop(true);
-        mSphereRenderer = new SphereRenderer();
-        mSphere = (OpenGLESView) findViewById(R.id.sphere);
-        mSphere.shareEGLContext();
-        mSphere.setRenderer(mSphereRenderer);
-        mSphere.setZOrderOnTop(true);
+
+        mFilters = new ArrayList<>();
+
+        mFilters.add(new Filter(this, R.id.grayscale, mSurfaceTexture, mPreviewTexture));
+        mFilters.add(new Filter(this, R.id.swirl, mSurfaceTexture, mPreviewTexture));
+        mFilters.add(new Filter(this, R.id.sphere, mSurfaceTexture, mPreviewTexture));
     }
 
     @Override
@@ -347,9 +330,10 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         mPreview.requestRender();
-        mGrayscale.requestRender();
-        mSwirl.requestRender();
-        mSphere.requestRender();
+
+        for (Filter filter : mFilters) {
+            filter.requestRender();
+        }
     }
 
     // Must be called in GLContext thread
@@ -413,57 +397,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         @Override
         protected int getPreviewTexture() {
             return mPreviewTexture;
-        }
-    }
-
-    private class GrayscaleRenderer extends SurfaceTextureRenderer {
-        @Override
-        protected SurfaceTexture getSurfaceTexture() {
-            return mSurfaceTexture;
-        }
-
-        @Override
-        protected int getPreviewTexture() {
-            return mPreviewTexture;
-        }
-
-        @Override
-        protected String getFragmentShader() {
-            return FilterRenderer.GRAYSCALE_FRAGMENT_SHADER;
-        }
-    }
-
-    private class SwirlRenderer extends SurfaceTextureRenderer {
-        @Override
-        protected SurfaceTexture getSurfaceTexture() {
-            return mSurfaceTexture;
-        }
-
-        @Override
-        protected int getPreviewTexture() {
-            return mPreviewTexture;
-        }
-
-        @Override
-        protected String getFragmentShader() {
-            return FilterRenderer.SWIRL_FRAGMENT_SHADER;
-        }
-    }
-
-    private class SphereRenderer extends SurfaceTextureRenderer {
-        @Override
-        protected SurfaceTexture getSurfaceTexture() {
-            return mSurfaceTexture;
-        }
-
-        @Override
-        protected int getPreviewTexture() {
-            return mPreviewTexture;
-        }
-
-        @Override
-        protected String getFragmentShader() {
-            return FilterRenderer.SPHERE_FRAGMENT_SHADER;
         }
     }
 }
