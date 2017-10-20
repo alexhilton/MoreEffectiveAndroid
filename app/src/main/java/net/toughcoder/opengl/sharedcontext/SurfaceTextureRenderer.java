@@ -1,5 +1,6 @@
 package net.toughcoder.opengl.sharedcontext;
 
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -142,6 +143,10 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
     public void setInputDimension(int inputWidth, int inputHeight) {
         mInputHeight = inputHeight;
         mInputWidth = inputWidth;
+    }
+
+    private Point getInputDimension() {
+        return new Point(mInputWidth, mInputHeight);
     }
 
     private void adjustDisplayScaling(float[] textureCoords, int inputWidth, int inputHeight,

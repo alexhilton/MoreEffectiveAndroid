@@ -142,6 +142,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private void configRenderers(int width, int height) {
         mPreviewRenderer.setInputDimension(width, height);
         for (Filter filter : mFilters) {
+            Log.d(TAG, "config renderer filter -> " + filter);
             filter.setInputDimension(width, height);
         }
     }
@@ -212,6 +213,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         setTitle(TAG);
 
         initViews();
+        mFilters = new ArrayList<>();
 
         // init camera manager
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -224,12 +226,16 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview.shareEGLContext();
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setZOrderOnTop(false);
+    }
 
-        mFilters = new ArrayList<>();
-
+    private void addFilters() {
         mFilters.add(new Filter(this, R.id.grayscale, mSurfaceTexture, mPreviewTexture));
         mFilters.add(new Filter(this, R.id.swirl, mSurfaceTexture, mPreviewTexture));
         mFilters.add(new Filter(this, R.id.sphere, mSurfaceTexture, mPreviewTexture));
+    }
+
+    private void removeFilters() {
+        mFilters.clear();
     }
 
     @Override
@@ -358,6 +364,8 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
             Log.d(TAG, "onSurfaceCreated");
             super.onContextCreate();
             initializeSurfaceTexture();
+
+            addFilters();
         }
 
         @Override
@@ -384,7 +392,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         public void onContextDestroy() {
             super.onContextDestroy();
             GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
-            mSurfaceTexture.releaseTexImage();
+            removeFilters();
             mSurfaceTexture.release();
             mSurfaceTexture = null;
         }
