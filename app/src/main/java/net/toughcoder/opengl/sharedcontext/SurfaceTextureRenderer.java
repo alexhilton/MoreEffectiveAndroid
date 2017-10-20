@@ -183,6 +183,7 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
 
     @Override
     public void onContextCreate() {
+        Log.d(TAG, "onCreateContext");
         // Initialize GL stuff
         GLES20.glDisable(GLES20.GL_DITHER);
         GLES20.glClearColor(0, 0, 0, 0);
@@ -194,6 +195,7 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
 
     @Override
     public void onContextChange(int width, int height) {
+        Log.d(TAG, "onContextChagen width -> " + width + ", height-> " + height);
         mTargetWidth = width;
         mTargetHeight = height;
         GLES20.glViewport(0, 0, width, height);
@@ -235,6 +237,7 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
 
     @Override
     public void onContextDestroy() {
+        Log.d(TAG, "onContextDestroy");
         GLES20.glDeleteProgram(mProgram);
     }
 }
