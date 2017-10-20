@@ -306,7 +306,9 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             }
             mEGLSurface = surface;
 
-            mRenderer.onContextCreate();
+            if (mRenderer != null) {
+                mRenderer.onContextCreate();
+            }
         }
 
         private void logEGLError(String msg) {
@@ -315,6 +317,9 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
+            if (mRenderer == null) {
+                return;
+            }
             synchronized (mPreJobQueue) {
                 final Runnable job = new Runnable() {
                     @Override
