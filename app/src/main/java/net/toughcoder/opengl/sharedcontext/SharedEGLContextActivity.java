@@ -224,6 +224,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreviewRenderer = new PreviewRenderer();
         mPreview = (OpenGLESView) findViewById(R.id.preview);
         mPreview.shareEGLContext();
+        mPreview.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setZOrderOnTop(false);
     }
@@ -341,6 +342,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        Log.d(TAG, "onFrameAvailable ");
         mPreview.requestRender();
 
         for (Filter filter : mFilters) {

@@ -17,6 +17,7 @@ public class Filter {
         mView = (OpenGLESView) host.findViewById(viewId);
         mRenderer = FilterRenderer.createRenderer(viewId, surfaceTexture, texture);
         mView.shareEGLContext();
+        mView.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         mView.setRenderer(mRenderer);
         mView.setZOrderOnTop(true);
     }
