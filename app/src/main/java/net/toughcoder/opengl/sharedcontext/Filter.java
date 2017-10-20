@@ -19,7 +19,6 @@ public class Filter {
         mView.shareEGLContext();
         mView.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         mView.setRenderer(mRenderer);
-        mView.setZOrderOnTop(true);
     }
 
     public void requestRender() {

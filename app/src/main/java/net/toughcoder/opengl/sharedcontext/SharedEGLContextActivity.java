@@ -227,6 +227,12 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         mPreview.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         mPreview.setRenderer(mPreviewRenderer);
         mPreview.setZOrderOnTop(false);
+
+        // It seems that ZOrderOnTop flag must be set before its surface created.
+        // Once surface created, its order cannot be changed, of course.
+        ((OpenGLESView) findViewById(R.id.grayscale)).setZOrderOnTop(true);
+        ((OpenGLESView) findViewById(R.id.swirl)).setZOrderOnTop(true);
+        ((OpenGLESView) findViewById(R.id.sphere)).setZOrderOnTop(true);
     }
 
     private void addFilters() {
