@@ -317,14 +317,13 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
-            if (mRenderer == null) {
-                return;
-            }
             synchronized (mPreJobQueue) {
                 final Runnable job = new Runnable() {
                     @Override
                     public void run() {
-                        mRenderer.onContextChange(width, height);
+                        if (mRenderer != null) {
+                            mRenderer.onContextChange(width, height);
+                        }
                         mReadyToDraw = true;
                     }
                 };
