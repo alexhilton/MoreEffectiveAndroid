@@ -24,6 +24,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
     private Renderer mRenderer;
     private GLThread mGLThread;
     private static EGLContext sSharedContext = EGL14.EGL_NO_CONTEXT;
+    private static int sThreadId = 0;
 
     public OpenGLESView(Context context) {
         super(context);
@@ -111,6 +112,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         };
 
         public GLThread() {
+            setName("OpenGL ES Renderer Thread #" + sThreadId++);
             mPreJobQueue = new LinkedList<>();
             mPostJobQueue = new LinkedList<>();
             mRenderJobQueue = new LinkedList<>();
