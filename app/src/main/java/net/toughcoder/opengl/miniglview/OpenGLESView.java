@@ -26,6 +26,8 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
     private static EGLContext sSharedContext = EGL14.EGL_NO_CONTEXT;
     private static int sThreadId = 0;
 
+    private static final boolean sDEBUG = true;
+
     public OpenGLESView(Context context) {
         super(context);
         init();
@@ -150,6 +152,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
 
         @Override
         public void run() {
+            logDebug(getName() + ": run run starts");
             while (true) {
                 executePreJobs();
                 // Check for prerequisite errors
@@ -163,6 +166,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     break;
                 }
             }
+            logDebug(getName() + ": run run finishes");
         }
 
         private boolean ableToDraw() {
@@ -188,16 +192,25 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             mShareEGLContext = true;
         }
 
+        private void logDebug(String msg) {
+            if (sDEBUG) {
+                Log.d(TAG, msg + ": tid->" + Thread.currentThread().getName() + ":" + this);
+            }
+        }
+
         private void executePreJobs() {
+            logDebug("executePreJobs starts");
             synchronized (mPreJobQueue) {
                 while (!mPreJobQueue.isEmpty()) {
                     Runnable job = mPreJobQueue.remove(0);
                     job.run();
                 }
             }
+            logDebug("executePreJobs finishes");
         }
 
         private void executePostJobs() {
+            logDebug("executePostJobs starts");
             synchronized (mPostJobQueue) {
                 while (!mPostJobQueue.isEmpty()) {
                     Runnable job = mPostJobQueue.remove(0);
@@ -205,9 +218,11 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 }
                 mPostJobQueue.notify();
             }
+            logDebug("executePostJobs finishes");
         }
 
         private void executeRenderJob() {
+            logDebug("executeRenderJob starts");
             synchronized (mRenderJobQueue) {
                 if (mRenderJobQueue.isEmpty()) {
                     try {
@@ -223,12 +238,15 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     }
                 }
             }
+            logDebug("executeRenderJob finishes");
         }
 
         private void onSurfaceCreate(SurfaceHolder holder) {
+            logDebug("onSurfaceCreate starts, holder -> " + holder);
             init();
             mAlive = true;
             initializeEGL(holder);
+            logDebug("onSurfaceCreate finishes");
         }
 
         private void initializeEGL(final SurfaceHolder holder) {
@@ -319,6 +337,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         }
 
         private void onSurfaceChange(SurfaceHolder holder, int format, final int width, final int height) {
+            logDebug("onSurfaceChange width -> " + width + ", height -> " + height);
             synchronized (mPreJobQueue) {
                 final Runnable job = new Runnable() {
                     @Override
@@ -331,12 +350,19 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 };
                 mPreJobQueue.add(job);
             }
+            if (mRenderMode == RenderMode.WHEN_DIRTY) {
+                synchronized (mRenderJobQueue) {
+                    mRenderJobQueue.notify();
+                }
+            }
+            logDebug("onSurfaceChange finishes");
         }
 
         // Surface will be destroyed after this method return.
         // As a result, should not call any GLES methods after this method return.
         // So, should not return before all draw finish.
         private void onSurfaceDestroy(SurfaceHolder holder) {
+            logDebug("onSurfaceDestroy starts, holder -> " + holder);
             mAlive = false;
             // clean up and exit the run-loop
             final Runnable exitJob = new Runnable() {
@@ -378,11 +404,14 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                     }
                 }
             }
+            logDebug("onSurfaceDestroy finishes");
         }
 
         private void doCleanup() {
             Log.d(TAG, "doCleanup");
-            mRenderer.onContextDestroy();
+            if (mRenderer != null) {
+                mRenderer.onContextDestroy();
+            }
             if (mEGLSurface != EGL14.EGL_NO_SURFACE && !EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)) {
                 logEGLError("Failed to destroy surface");
             }
