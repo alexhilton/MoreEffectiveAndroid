@@ -200,7 +200,7 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
 
     @Override
     public void onContextChange(int width, int height) {
-        Log.d(TAG, "onContextChagen width -> " + width + ", height-> " + height);
+        Log.d(TAG, "onContextChange width -> " + width + ", height-> " + height);
         mTargetWidth = width;
         mTargetHeight = height;
         GLES20.glViewport(0, 0, width, height);
@@ -233,7 +233,7 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
         GLES20.glUniformMatrix4fv(mUniformMatrix, 1, false, matrix, 0);
         final int error = GLES20.glGetError();
         if (error != 0) {
-            Log.e("render", "render error " + String.format("0x%x", error));
+            Log.e(TAG, "OpenGL error " + String.format("0x%x", error));
         }
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
