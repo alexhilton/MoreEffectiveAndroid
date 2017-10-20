@@ -264,7 +264,13 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     }
 
     private void stopCameraThread() {
+        mCameraHandler.removeCallbacksAndMessages(null);
         mCameraThread.quitSafely();
+        try {
+            mCameraThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         mCameraThread = null;
         mCameraHandler = null;
     }
@@ -361,7 +367,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
         @Override
         public void onContextCreate() {
-            Log.d(TAG, "onSurfaceCreated");
+            Log.d(TAG, "onContextCreate");
             super.onContextCreate();
             initializeSurfaceTexture();
 
@@ -370,7 +376,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
         @Override
         public void onContextChange(int width, int height) {
-            Log.d(TAG, "onSurfaceChanged");
+            Log.d(TAG, "onContextChange width -> " + width + ", height -> " + height);
             super.onContextChange(width, height);
             // Able to start preview now.
             // When back from HOME, onResume will start preview first, no need second one.
@@ -390,9 +396,10 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
 
         @Override
         public void onContextDestroy() {
+            Log.d(TAG, "onContextDestroy -->");
             super.onContextDestroy();
-            GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
             removeFilters();
+            GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
             mSurfaceTexture.release();
             mSurfaceTexture = null;
         }
