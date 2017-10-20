@@ -60,6 +60,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         mGLThread.setRenderMode(mode);
     }
 
+    public RenderMode getRenderMode() {
+        return mGLThread.mRenderMode;
+    }
+
     public void requestRender() {
         mGLThread.requestRender();
     }
