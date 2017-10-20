@@ -219,22 +219,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         setContentView(R.layout.activity_shared_eglcontext);
         setTitle(TAG);
 
-        // init thread
-        mCameraThread = new HandlerThread("Camera Handler Thread");
-        mCameraThread.start();
-        mCameraHandler = new Handler(mCameraThread.getLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case MSG_START_PREVIEW: {
-                        Size p = (Size) msg.obj;
-                        startPreview(p.getWidth(), p.getHeight());
-                        break;
-                    }
-                }
-            }
-        };
-
         initViews();
 
         // init camera manager
@@ -266,9 +250,40 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        // start camera handler
+        // init thread
+        startCameraThread();
+    }
+
+    private void startCameraThread() {
+        mCameraThread = new HandlerThread("Camera Handler Thread");
+        mCameraThread.start();
+        mCameraHandler = new Handler(mCameraThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case MSG_START_PREVIEW: {
+                        Size p = (Size) msg.obj;
+                        startPreview(p.getWidth(), p.getHeight());
+                        break;
+                    }
+                }
+            }
+        };
+    }
+
+    private void stopCameraThread() {
+        mCameraThread.quitSafely();
+        mCameraThread = null;
+        mCameraHandler = null;
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Log.d(TAG, "onResume mSurfaceTexture -> " + mSurfaceTexture);
         openCamera();
         // For not creation case
         if (mSurfaceTexture != null && !mCameraHandler.hasMessages(MSG_START_PREVIEW)) {
@@ -282,7 +297,15 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     @Override
     protected void onPause() {
         super.onPause();
+        Log.d(TAG, "onPause");
         closeCamera();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // stop camera thread.
+        stopCameraThread();
     }
 
     @Override
@@ -322,23 +345,6 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     }
 
     @Override
-    protected void onDestroy() {
-        releaseGLResources();
-        super.onDestroy();
-    }
-
-    /*
-     * How to release GL resources is a hard question.
-     * There are three things to break:
-     * 1. all should be called in GL Thread, which generates these resources.
-     * 2. There is no clean up callback from GL thread, even we got instantiation callback.
-     * 3. need to make sure release happen after all draw.
-     * Currently, no definite solution, unfortunately.
-     */
-    private void releaseGLResources() {
-    }
-
-    @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         mPreview.requestRender();
         mGrayscale.requestRender();
@@ -366,8 +372,8 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         @Override
         public void onContextCreate() {
             Log.d(TAG, "onSurfaceCreated");
-            initializeSurfaceTexture();
             super.onContextCreate();
+            initializeSurfaceTexture();
         }
 
         @Override
@@ -388,6 +394,15 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
         public void onDrawFrame() {
             mSurfaceTexture.updateTexImage();
             super.onDrawFrame();
+        }
+
+        @Override
+        public void onContextDestroy() {
+            super.onContextDestroy();
+            GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
+            mSurfaceTexture.releaseTexImage();
+            mSurfaceTexture.release();
+            mSurfaceTexture = null;
         }
 
         @Override

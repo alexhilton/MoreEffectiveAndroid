@@ -208,7 +208,9 @@ public abstract class SurfaceTextureRenderer implements OpenGLESView.Renderer {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glUseProgram(mProgram);
-
+        if (getSurfaceTexture() == null) {
+            return;
+        }
         mCubeBuffer.position(0);
         GLES20.glVertexAttribPointer(mAttributePosition, 2, GLES20.GL_FLOAT, false, 0, mCubeBuffer);
         GLES20.glEnableVertexAttribArray(mAttributePosition);
