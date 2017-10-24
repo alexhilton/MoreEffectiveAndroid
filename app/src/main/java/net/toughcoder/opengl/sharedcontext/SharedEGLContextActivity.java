@@ -340,6 +340,7 @@ public class SharedEGLContextActivity extends Activity implements SurfaceTexture
     private void closeCamera() {
         if (mSession != null) {
             mSession.close();
+            mSession = null;
         }
         if (mCameraDevice != null) {
             mCameraDevice.close();
