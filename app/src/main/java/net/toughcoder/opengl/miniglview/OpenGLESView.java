@@ -24,6 +24,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
     private Renderer mRenderer;
     private GLThread mGLThread;
     private static EGLContext sSharedContext = EGL14.EGL_NO_CONTEXT;
+    private static int sSharedContextRefCount = 0;
     private static int sThreadId = 0;
 
     private static final boolean sDEBUG = true;
@@ -318,6 +319,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
                 sSharedContext = context;
             }
 
+            if (mShareEGLContext) {
+                sSharedContextRefCount++;
+            }
+
             final int[] surfaceAttribs = {
                     EGL14.EGL_NONE,
             };
@@ -426,6 +431,15 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             }
             if (mEGLContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)) {
                 logEGLError("failed to destroy context");
+            }
+            if (mShareEGLContext) {
+                sSharedContextRefCount--;
+            }
+            if (sSharedContextRefCount == 0) {
+                if (sSharedContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, sSharedContext)) {
+                    logEGLError("Failed to destroy shared context");
+                }
+                sSharedContext = EGL14.EGL_NO_CONTEXT;
             }
             if (mEGLDisplay != EGL14.EGL_NO_DISPLAY && !EGL14.eglTerminate(mEGLDisplay)) {
                 logEGLError("Failed to terminate display");
