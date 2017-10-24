@@ -28,7 +28,7 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
     private static int sSharedContextRefCount = 0;
     private static int sThreadId = 0;
 
-    private static final boolean sDEBUG = true;
+    private static final boolean sDEBUG = false;
 
     public OpenGLESView(Context context) {
         super(context);
