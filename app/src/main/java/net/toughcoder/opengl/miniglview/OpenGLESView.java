@@ -368,6 +368,11 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
         private void onSurfaceDestroy(SurfaceHolder holder) {
             logDebug("onSurfaceDestroy starts, holder -> " + holder);
             mAlive = false;
+            // What if the renderer thread never been started? Should quit immediately.
+            if (!mGLThread.isAlive()) {
+                logDebug("onSurfaceDestroy finish thread not started yet, quit directly");
+                return;
+            }
             // clean up and exit the run-loop
             final Runnable exitJob = new Runnable() {
                 @Override
