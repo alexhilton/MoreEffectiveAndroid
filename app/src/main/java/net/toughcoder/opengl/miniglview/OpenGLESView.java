@@ -434,18 +434,21 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             if (mEGLSurface != EGL14.EGL_NO_SURFACE && !EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)) {
                 logEGLError("Failed to destroy surface");
             }
-            if (mEGLContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)) {
-                logEGLError("failed to destroy context");
-            }
+
             if (mShareEGLContext) {
                 sSharedContextRefCount--;
-            }
-            if (sSharedContextRefCount == 0) {
-                if (sSharedContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, sSharedContext)) {
-                    logEGLError("Failed to destroy shared context");
+                if (sSharedContextRefCount == 0) {
+                    if (sSharedContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, sSharedContext)) {
+                        logEGLError("Failed to destroy shared context");
+                    }
+                    sSharedContext = EGL14.EGL_NO_CONTEXT;
                 }
-                sSharedContext = EGL14.EGL_NO_CONTEXT;
+            } else {
+                if (mEGLContext != EGL14.EGL_NO_CONTEXT && !EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)) {
+                    logEGLError("failed to destroy context");
+                }
             }
+
             if (mEGLDisplay != EGL14.EGL_NO_DISPLAY && !EGL14.eglTerminate(mEGLDisplay)) {
                 logEGLError("Failed to terminate display");
             }
