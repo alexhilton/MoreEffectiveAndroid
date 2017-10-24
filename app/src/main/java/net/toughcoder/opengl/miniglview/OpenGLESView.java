@@ -1,6 +1,7 @@
 package net.toughcoder.opengl.miniglview;
 
 import android.content.Context;
+import android.hardware.camera2.CameraCaptureSession;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
@@ -251,6 +252,10 @@ public class OpenGLESView extends SurfaceView implements SurfaceHolder.Callback 
             init();
             mAlive = true;
             initializeEGL(holder);
+            if (mRenderer != null && !mGLThread.isAlive()) {
+                // Not start over, but resume so starts the thread.
+                start();
+            }
             logDebug("onSurfaceCreate finishes");
         }
 
