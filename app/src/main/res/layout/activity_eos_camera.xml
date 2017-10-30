@@ -6,5 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="net.toughcoder.eos.EosCameraActivity">
-
+    <net.toughcoder.opengl.miniglview.OpenGLESView
+        android:id="@+id/eos_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 </android.support.constraint.ConstraintLayout>
