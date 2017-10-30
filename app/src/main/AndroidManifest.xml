@@ -124,6 +124,8 @@
         </activity>
         <activity android:name="net.toughcoder.opengl.miniglview.GLViewSampleActivity">
         </activity>
+        <activity android:name="net.toughcoder.eos.EosCameraActivity">
+        </activity>
     </application>
 
 </manifest>
