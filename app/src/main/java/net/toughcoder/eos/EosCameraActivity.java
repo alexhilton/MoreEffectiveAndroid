@@ -50,7 +50,6 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
     private CameraManager mCameraManager;
     private CameraDevice mCameraDevice;
     private static final String CAMERA = "0";
-    private int mPreviewTexture;
     private CameraCaptureSession mSession;
     private CaptureRequest.Builder mPreviewRequestBuilder;
 
@@ -136,7 +135,6 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
             final int rotatedHeight = needSwap ? targetWidth : targetHeight;
             final Size bestPreviewSize = chooseOptimalPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), rotatedWidth, rotatedHeight);
             Log.d(TAG, "preview size w -> " + bestPreviewSize.getWidth() + ", height -> " + bestPreviewSize.getHeight());
-            mSurfaceTexture.setDefaultBufferSize(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
             configRenderers(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -332,28 +330,29 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
         mPreview.requestRender();
     }
 
-    // Must be called in GLContext thread
-    private void initializeSurfaceTexture() {
-        int[] textures = new int[1];
-        GLES20.glGenTextures(1, textures, 0);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
-
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        mPreviewTexture = textures[0];
-        mSurfaceTexture = new SurfaceTexture(mPreviewTexture);
-    }
-
     private class PreviewRenderer extends SurfaceTextureRenderer {
         private static final String TAG = "PreviewRenderer";
+        private int mPreviewTexture;
 
         @Override
         public void onContextCreate() {
             Log.d(TAG, "onContextCreate");
             super.onContextCreate();
             initializeSurfaceTexture();
+        }
+
+        // Must be called in GLContext thread
+        private void initializeSurfaceTexture() {
+            int[] textures = new int[1];
+            GLES20.glGenTextures(1, textures, 0);
+            GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
+
+            GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            mPreviewTexture = textures[0];
+            mSurfaceTexture = new SurfaceTexture(mPreviewTexture);
         }
 
         @Override
@@ -383,6 +382,12 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
             GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
             mSurfaceTexture.release();
             mSurfaceTexture = null;
+        }
+
+        @Override
+        public void setInputDimension(int inputWidth, int inputHeight) {
+            super.setInputDimension(inputWidth, inputHeight);
+            mSurfaceTexture.setDefaultBufferSize(inputWidth, inputHeight);
         }
 
         @Override
