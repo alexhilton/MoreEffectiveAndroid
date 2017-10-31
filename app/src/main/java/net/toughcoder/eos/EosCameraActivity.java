@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class EosCameraActivity extends Activity implements SurfaceTexture.OnFrameAvailableListener {
+public class EosCameraActivity extends Activity {
     private static final String TAG = "EosCamera";
 
     private static final int REQ_PERMISSION = 0x01;
@@ -84,7 +84,6 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
         Log.d(TAG, "setuppreview device + " + mCameraDevice + ", surface " + mSurfaceTexture);
         mCameraHandler.removeMessages(MSG_START_PREVIEW);
         configPreviewSize(targetWidth, targetHeight);
-        mSurfaceTexture.setOnFrameAvailableListener(this);
         if (mCameraDevice == null) {
             Message msg = Message.obtain();
             msg.what = MSG_START_PREVIEW;
@@ -324,13 +323,7 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
         }
     }
 
-    @Override
-    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        Log.d(TAG, "onFrameAvailable ");
-        mPreview.requestRender();
-    }
-
-    private class PreviewRenderer extends SurfaceTextureRenderer {
+    private class PreviewRenderer extends SurfaceTextureRenderer implements SurfaceTexture.OnFrameAvailableListener {
         private static final String TAG = "PreviewRenderer";
         private int mPreviewTexture;
 
@@ -353,6 +346,7 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
             GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
             mPreviewTexture = textures[0];
             mSurfaceTexture = new SurfaceTexture(mPreviewTexture);
+            mSurfaceTexture.setOnFrameAvailableListener(this);
         }
 
         @Override
@@ -382,6 +376,12 @@ public class EosCameraActivity extends Activity implements SurfaceTexture.OnFram
             GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
             mSurfaceTexture.release();
             mSurfaceTexture = null;
+        }
+
+        @Override
+        public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+            Log.d(TAG, "onFrameAvailable ");
+            mPreview.requestRender();
         }
 
         @Override
