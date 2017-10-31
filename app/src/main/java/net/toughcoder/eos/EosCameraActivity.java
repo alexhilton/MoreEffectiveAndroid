@@ -403,9 +403,5 @@ public class EosCameraActivity extends Activity {
         public boolean hasSurface() {
             return mSurfaceTexture != null;
         }
-
-        public SurfaceTexture getSurface() {
-            return mSurfaceTexture;
-        }
     }
 }
