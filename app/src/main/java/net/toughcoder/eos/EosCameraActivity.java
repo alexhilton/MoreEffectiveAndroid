@@ -46,7 +46,6 @@ public class EosCameraActivity extends Activity {
 
     private static final int MSG_START_PREVIEW = 0x100;
 
-    private SurfaceTexture mSurfaceTexture;
     private CameraManager mCameraManager;
     private CameraDevice mCameraDevice;
     private static final String CAMERA = "0";
@@ -81,7 +80,7 @@ public class EosCameraActivity extends Activity {
 
     // Need to wait for SurfaceTexture creation.
     private void startPreview(int targetWidth, int targetHeight) {
-        Log.d(TAG, "setuppreview device + " + mCameraDevice + ", surface " + mSurfaceTexture);
+        Log.d(TAG, "setuppreview device + " + mCameraDevice);
         mCameraHandler.removeMessages(MSG_START_PREVIEW);
         configPreviewSize(targetWidth, targetHeight);
         if (mCameraDevice == null) {
@@ -92,7 +91,7 @@ public class EosCameraActivity extends Activity {
             return;
         }
         List<Surface> target = new ArrayList<>();
-        Surface targetSurface = new Surface(mSurfaceTexture);
+        Surface targetSurface = new Surface(mPreviewRenderer.getSurfaceTexture());
         target.add(targetSurface);
         try {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
@@ -199,7 +198,7 @@ public class EosCameraActivity extends Activity {
     private Handler mCameraHandler;
 
     private OpenGLESView mPreview;
-    private SurfaceTextureRenderer mPreviewRenderer;
+    private PreviewRenderer mPreviewRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -261,10 +260,10 @@ public class EosCameraActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume mSurfaceTexture -> " + mSurfaceTexture);
+        Log.d(TAG, "onResume ");
         openCamera();
         // For not creation case
-        if (mSurfaceTexture != null && !mCameraHandler.hasMessages(MSG_START_PREVIEW)) {
+        if (mPreviewRenderer.hasSurface() && !mCameraHandler.hasMessages(MSG_START_PREVIEW)) {
             Message msg = Message.obtain();
             msg.what = MSG_START_PREVIEW;
             msg.obj = new Size(mPreview.getWidth(), mPreview.getHeight());
@@ -326,6 +325,7 @@ public class EosCameraActivity extends Activity {
     private class PreviewRenderer extends SurfaceTextureRenderer implements SurfaceTexture.OnFrameAvailableListener {
         private static final String TAG = "PreviewRenderer";
         private int mPreviewTexture;
+        private SurfaceTexture mSurfaceTexture;
 
         @Override
         public void onContextCreate() {
@@ -398,6 +398,14 @@ public class EosCameraActivity extends Activity {
         @Override
         protected int getPreviewTexture() {
             return mPreviewTexture;
+        }
+
+        public boolean hasSurface() {
+            return mSurfaceTexture != null;
+        }
+
+        public SurfaceTexture getSurface() {
+            return mSurfaceTexture;
         }
     }
 }
