@@ -5,4 +5,8 @@ package net.toughcoder.eos;
  */
 
 public interface EosCamera {
+    void onStart();
+    void onResume();
+    void onPause();
+    void onStop();
 }
