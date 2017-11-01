@@ -216,7 +216,6 @@ public class EosCameraActivity extends Activity {
         // Initialize GLSurfaceView
         mPreviewRenderer = new PreviewRenderer();
         mPreview = (OpenGLESView) findViewById(R.id.eos_preview);
-        mPreview.setRenderMode(OpenGLESView.RenderMode.WHEN_DIRTY);
         mPreview.setRenderer(mPreviewRenderer);
     }
 
@@ -322,7 +321,7 @@ public class EosCameraActivity extends Activity {
         }
     }
 
-    private class PreviewRenderer extends SurfaceTextureRenderer implements SurfaceTexture.OnFrameAvailableListener {
+    private class PreviewRenderer extends SurfaceTextureRenderer {
         private static final String TAG = "PreviewRenderer";
         private int mPreviewTexture;
         private SurfaceTexture mSurfaceTexture;
@@ -346,7 +345,6 @@ public class EosCameraActivity extends Activity {
             GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
             mPreviewTexture = textures[0];
             mSurfaceTexture = new SurfaceTexture(mPreviewTexture);
-            mSurfaceTexture.setOnFrameAvailableListener(this);
         }
 
         @Override
@@ -376,12 +374,6 @@ public class EosCameraActivity extends Activity {
             GLES20.glDeleteTextures(1, new int[] {mPreviewTexture}, 0);
             mSurfaceTexture.release();
             mSurfaceTexture = null;
-        }
-
-        @Override
-        public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-            Log.d(TAG, "onFrameAvailable ");
-            mPreview.requestRender();
         }
 
         @Override
