@@ -125,7 +125,8 @@
         <activity android:name="net.toughcoder.opengl.miniglview.GLViewSampleActivity">
         </activity>
         <activity android:name="net.toughcoder.eos.EosCameraActivity"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+                  android:launchMode="singleTop"
+                  android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
         </activity>
     </application>
 
