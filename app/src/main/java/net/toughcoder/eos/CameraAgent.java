@@ -31,6 +31,7 @@ import java.util.List;
 
 /**
  * Created by alex on 17-11-3.
+ * Encapsulation of  Camera API to separate business from Android Camera API.
  */
 
 @TargetApi(Build.VERSION_CODES.M)
