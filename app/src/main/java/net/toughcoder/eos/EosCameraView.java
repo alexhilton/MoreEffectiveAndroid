@@ -20,7 +20,7 @@ import net.toughcoder.opengl.sharedcontext.SurfaceTextureRenderer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class EosCameraView extends FrameLayout implements Targetable {
+public final class EosCameraView extends FrameLayout implements Targetable {
     private static final String TAG = "EosCameraView";
 
     private OpenGLESView mPreview;
