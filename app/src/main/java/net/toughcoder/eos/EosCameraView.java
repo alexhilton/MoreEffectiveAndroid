@@ -20,12 +20,12 @@ import net.toughcoder.opengl.sharedcontext.SurfaceTextureRenderer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class EosCameraView extends FrameLayout implements EosCamera {
+public class EosCameraView extends FrameLayout implements Targetable {
     private static final String TAG = "EosCameraView";
 
     private OpenGLESView mPreview;
     private PreviewRenderer mPreviewRenderer;
-    private CameraAgent mCameraAgent;
+    private TargetReadyListener mListener;
 
     public EosCameraView(Context context) {
         super(context);
@@ -46,31 +46,23 @@ public class EosCameraView extends FrameLayout implements EosCamera {
         addView(mPreview, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         mPreviewRenderer = new PreviewRenderer();
         mPreview.setRenderer(mPreviewRenderer);
-        mCameraAgent = new CameraAgent(getContext());
-        mCameraAgent.setTarget(mPreviewRenderer);
+    }
+
+    public void setReadyListener(TargetReadyListener listener) {
+        mListener = listener;
     }
 
     @Override
-    public void onStart() {
-        mCameraAgent.startCameraThread();
+    public Surface getSurface() {
+        return mPreviewRenderer.getSurface();
     }
 
     @Override
-    public void onResume() {
-        mCameraAgent.openCamera();
+    public void setInputDimension(int width, int height) {
+        mPreviewRenderer.setInputDimension(width, height);
     }
 
-    @Override
-    public void onPause() {
-        mCameraAgent.closeCamera();
-    }
-
-    @Override
-    public void onStop() {
-        mCameraAgent.stopCameraThread();
-    }
-
-    private class PreviewRenderer extends SurfaceTextureRenderer implements Targetable {
+    private class PreviewRenderer extends SurfaceTextureRenderer {
         private static final String TAG = "PreviewRenderer";
         private int mPreviewTexture;
         private SurfaceTexture mSurfaceTexture;
@@ -102,7 +94,9 @@ public class EosCameraView extends FrameLayout implements EosCamera {
             super.onContextChange(width, height);
             // Able to start preview now.
             // When back from HOME, onResume will start preview first, no need second one.
-            mCameraAgent.startPreview(width, height);
+            if (mListener != null) {
+                mListener.onTargetReady(width, height);
+            }
         }
 
         @Override
@@ -138,8 +132,7 @@ public class EosCameraView extends FrameLayout implements EosCamera {
             return mPreviewTexture;
         }
 
-        @Override
-        public Surface getSurface() {
+        private Surface getSurface() {
             return new Surface(mSurfaceTexture);
         }
     }

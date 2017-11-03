@@ -25,7 +25,7 @@ public class EosCameraActivity extends Activity {
         }
     };
 
-    private EosCamera mCamera;
+    private EosCameraBusiness mCameraBusiness;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +34,13 @@ public class EosCameraActivity extends Activity {
         setTitle(TAG);
 
         initViews();
-
-        // init camera manager
     }
 
     private void initViews() {
         // Initialize GLSurfaceView
-        mCamera = (EosCameraView) findViewById(R.id.eos_preview);
+        final EosCameraView cameraView = (EosCameraView) findViewById(R.id.eos_preview);
+        mCameraBusiness = new EosCameraBusiness(this);
+        mCameraBusiness.setPreviewTarget(cameraView);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class EosCameraActivity extends Activity {
         super.onStart();
         // start camera handler
         // init thread
-        mCamera.onStart();
+        mCameraBusiness.onStart();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EosCameraActivity extends Activity {
             requestPermissions(new String[] {Manifest.permission.CAMERA}, REQ_PERMISSION);
             return;
         } else {
-            mCamera.onResume();
+            mCameraBusiness.onResume();
         }
     }
 
@@ -67,14 +67,14 @@ public class EosCameraActivity extends Activity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        mCamera.onPause();
+        mCameraBusiness.onPause();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         // stop camera thread.
-        mCamera.onStop();
+        mCameraBusiness.onStop();
     }
 
     @Override
