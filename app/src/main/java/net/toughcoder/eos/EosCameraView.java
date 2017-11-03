@@ -58,8 +58,6 @@ public class EosCameraView extends FrameLayout implements EosCamera {
     @Override
     public void onResume() {
         mCameraAgent.openCamera();
-        // For not creation case
-        mCameraAgent.restartPreview(mPreview.getWidth(), mPreview.getHeight());
     }
 
     @Override
@@ -143,11 +141,6 @@ public class EosCameraView extends FrameLayout implements EosCamera {
         @Override
         public Surface getSurface() {
             return new Surface(mSurfaceTexture);
-        }
-
-        @Override
-        public boolean isAlive() {
-            return mSurfaceTexture != null;
         }
     }
 }

@@ -245,15 +245,6 @@ public class CameraAgent {
         }
     }
 
-    public void restartPreview(int targetWidth, int targetHeight) {
-        if (mPreview.isAlive() && !mCameraHandler.hasMessages(MSG_START_PREVIEW)) {
-            Message msg = Message.obtain();
-            msg.what = MSG_START_PREVIEW;
-            msg.obj = new Size(targetWidth, targetHeight);
-            mCameraHandler.sendMessage(msg);
-        }
-    }
-
     public void startPreview(int targetWidth, int targetHeight) {
         if (mSession == null) {
             Message msg = Message.obtain();

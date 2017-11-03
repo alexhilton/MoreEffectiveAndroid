@@ -10,5 +10,4 @@ import android.view.Surface;
 public interface Targetable {
     Surface getSurface();
     void setInputDimension(int width, int height);
-    boolean isAlive();
 }
