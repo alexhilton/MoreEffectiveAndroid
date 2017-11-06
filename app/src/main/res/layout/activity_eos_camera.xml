@@ -6,8 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="net.toughcoder.eos.EosCameraActivity">
+
+    <!-- The Preview surface -->
     <net.toughcoder.eos.EosCameraView
         android:id="@+id/eos_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
+    <ImageView
+        android:layout_width="80dip"
+        android:layout_height="80dip"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dip"
+        android:clickable="true"
+        android:background="@drawable/eos_shutter_bg"/>
 </RelativeLayout>

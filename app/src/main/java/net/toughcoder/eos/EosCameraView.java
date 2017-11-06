@@ -44,6 +44,7 @@ public final class EosCameraView extends FrameLayout implements Targetable {
         super.onFinishInflate();
         mPreview = new OpenGLESView(getContext());
         addView(mPreview, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        mPreview.setZOrderOnTop(false);
         mPreviewRenderer = new PreviewRenderer();
         mPreview.setRenderer(mPreviewRenderer);
     }
