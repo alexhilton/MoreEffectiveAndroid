@@ -20,5 +20,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="20dip"
         android:clickable="true"
-        android:background="@drawable/eos_shutter_bg"/>
+        android:background="@drawable/eos_shutter_bg"
+        android:onClick="onTakePicture"/>
 </RelativeLayout>

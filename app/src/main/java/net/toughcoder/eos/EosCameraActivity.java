@@ -10,6 +10,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import net.toughcoder.effectiveandroid.R;
@@ -89,5 +90,11 @@ public class EosCameraActivity extends Activity {
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    // UI event listener
+    public void onTakePicture(View view) {
+        Log.d(TAG, "onTakePicture");
+        mCameraBusiness.takePicture();
     }
 }

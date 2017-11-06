@@ -42,6 +42,10 @@ public class EosCameraBusiness implements TargetReadyListener {
         mCameraAgent.setTarget(mPreview);
     }
 
+    public void takePicture() {
+        //
+    }
+
     @Override
     public void onTargetReady(int targetWidth, int targetHeight) {
         mCameraAgent.startPreview(targetWidth, targetHeight);
