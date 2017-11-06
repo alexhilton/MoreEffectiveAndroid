@@ -60,13 +60,17 @@ public class CameraAgent {
         public void onImageAvailable(ImageReader reader) {
             Log.d(TAG, "image available tid: " + Thread.currentThread().getName());
             Image image = reader.acquireLatestImage();
-            Log.d(TAG, "image image " + image.getFormat() + ", planes " + image.getPlanes());
+            if (mPictureReadyListener == null) {
+                image.close();
+                return;
+            }
             ByteBuffer buf = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buf.remaining()];
             buf.get(bytes);
             // Yeah, up to this point listener should not be null.
             mPictureReadyListener.onPictureReady(bytes);
             image.close();
+            mPictureReadyListener = null;
         }
     };
 
@@ -269,7 +273,9 @@ public class CameraAgent {
                 orientation = 270;
                 break;
         }
-        return (orientation + 90 + 270) % 360;
+        // Assume sensor orientation is 90
+        final int sensorOrientation = 90;
+        return (orientation + sensorOrientation + 270) % 360;
     }
 
     public CameraAgent(Context context) {
@@ -342,11 +348,6 @@ public class CameraAgent {
         }
     }
 
-    /**
-     * Output jpeg byte data to caller.
-     * TODO: make this method asynchronously.
-     * @return
-     */
     public void takePicture(PictureReadyListener listener) {
         if (listener == null) {
             return;
