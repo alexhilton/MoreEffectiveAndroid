@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by alex on 17-11-1.
@@ -59,9 +61,11 @@ public class EosCameraBusiness implements TargetReadyListener {
             public void onPictureReady(byte[] jpeg) {
                 // save it to a file
                 // review it
-                long stamp = System.currentTimeMillis();
+                final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                final String stamp = sdf.format(new Date());
+                final String filename = String.format("Eos_%s.jpg", stamp);
                 File out = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                        stamp + ".png");
+                        filename);
                 if (out.exists()) {
                     out.delete();
                 }
