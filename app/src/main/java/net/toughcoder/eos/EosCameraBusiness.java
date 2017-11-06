@@ -2,7 +2,14 @@ package net.toughcoder.eos;
 
 import android.content.Context;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.RequiresApi;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * Created by alex on 17-11-1.
@@ -43,7 +50,41 @@ public class EosCameraBusiness implements TargetReadyListener {
     }
 
     public void takePicture() {
-        //
+        // take the picture, get the byte data.
+        // apply post process
+        // save the data to file.
+        // create record to media provider.
+        mCameraAgent.takePicture(new CameraAgent.PictureReadyListener() {
+            @Override
+            public void onPictureReady(byte[] jpeg) {
+                // save it to a file
+                // review it
+                long stamp = System.currentTimeMillis();
+                File out = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                        stamp + ".png");
+                if (out.exists()) {
+                    out.delete();
+                }
+                saveImage(jpeg, out);
+            }
+        });
+    }
+
+    private void saveImage(byte[] jpeg, File out) {
+        try {
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(out));
+            try {
+                bos.write(jpeg, 0, jpeg.length);
+            } finally {
+                if (bos != null) {
+                    bos.close();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

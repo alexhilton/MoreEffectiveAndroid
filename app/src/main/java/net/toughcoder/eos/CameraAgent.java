@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -15,6 +16,8 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
+import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -26,7 +29,11 @@ import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -45,6 +52,23 @@ public class CameraAgent {
     private Handler mCameraHandler;
     private final Context mContext;
     private Targetable mPreview;
+
+    private PictureReadyListener mPictureReadyListener;
+    private ImageReader mImageReader;
+    private ImageReader.OnImageAvailableListener mImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Log.d(TAG, "image available tid: " + Thread.currentThread().getName());
+            Image image = reader.acquireLatestImage();
+            Log.d(TAG, "image image " + image.getFormat() + ", planes " + image.getPlanes());
+            ByteBuffer buf = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buf.remaining()];
+            buf.get(bytes);
+            // Yeah, up to this point listener should not be null.
+            mPictureReadyListener.onPictureReady(bytes);
+            image.close();
+        }
+    };
 
     private static final String CAMERA = "0";
     private CameraCaptureSession mSession;
@@ -79,9 +103,13 @@ public class CameraAgent {
             mCameraHandler.sendMessageDelayed(msg, 100);
             return;
         }
+        configCaptureTarget();
         List<Surface> target = new ArrayList<>();
+        // Preview target surface.
         Surface targetSurface = mPreview.getSurface();
         target.add(targetSurface);
+        // Capture target surface
+        target.add(mImageReader.getSurface());
         try {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
@@ -94,6 +122,24 @@ public class CameraAgent {
             mCameraDevice.createCaptureSession(target, mSessionCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
+        }
+    }
+
+    // TODO: Requiring check access exception is a stupid design, devise a way to remove it.
+    private void configCaptureTarget() {
+        // Select largest picture size
+        try {
+            CameraCharacteristics cc = mCameraManager.getCameraCharacteristics(CAMERA);
+            StreamConfigurationMap scmap = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            Size largest =
+                    Collections.max(Arrays.asList(scmap.getOutputSizes(ImageFormat.JPEG)), new CompareSizeByAreas());
+            Log.d(TAG, "configCaptureTarget size w -> " + largest.getWidth() + ", h -> " + largest.getHeight());
+            if (mImageReader == null) {
+                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                        ImageFormat.JPEG, 1);
+                mImageReader.setOnImageAvailableListener(mImageAvailableListener, mCameraHandler);
+            }
+        } catch (CameraAccessException e) {
         }
     }
 
@@ -150,7 +196,7 @@ public class CameraAgent {
             Log.d(TAG, "session callback onConfigure session + " + session);
             mSession = session;
             try {
-                mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+                mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mCameraHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
@@ -165,24 +211,66 @@ public class CameraAgent {
     private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
         public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-            super.onCaptureStarted(session, request, timestamp, frameNumber);
+            Log.d(TAG, "onCaptureStarted");
         }
 
         @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-            super.onCaptureProgressed(session, request, partialResult);
+            Log.d(TAG, "onCaptureProgressed request " + request);
         }
 
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            super.onCaptureCompleted(session, request, result);
+            captureStillPicture(result);
         }
 
         @Override
         public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-            super.onCaptureFailed(session, request, failure);
+            Log.d(TAG, "onCaptureFailed failure->" + failure);
         }
     };
+
+    private void captureStillPicture(TotalCaptureResult result) {
+        final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+        Log.d(TAG, "captureStillPicture result =" + result + ", afstate -> " + afState);
+        doCapture();
+    }
+
+    private void doCapture() {
+        try {
+            final CaptureRequest.Builder captureBuilder =
+                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            captureBuilder.addTarget(mImageReader.getSurface());
+            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+            // Orientation
+            final WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+            final int rotation = wm.getDefaultDisplay().getRotation();
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
+//            mSession.stopRepeating();
+            mSession.capture(captureBuilder.build(), null, null);
+        } catch (CameraAccessException e) {
+        }
+    }
+
+    private int getOrientation(int rotation) {
+        int orientation = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                orientation = 90;
+                break;
+            case Surface.ROTATION_90:
+                orientation = 0;
+                break;
+            case Surface.ROTATION_180:
+                orientation = 180;
+                break;
+            case Surface.ROTATION_270:
+                orientation = 270;
+                break;
+        }
+        return (orientation + 90 + 270) % 360;
+    }
 
     public CameraAgent(Context context) {
         mContext = context;
@@ -252,5 +340,38 @@ public class CameraAgent {
             msg.obj = new Size(targetWidth, targetHeight);
             mCameraHandler.sendMessage(msg);
         }
+    }
+
+    /**
+     * Output jpeg byte data to caller.
+     * TODO: make this method asynchronously.
+     * @return
+     */
+    public void takePicture(PictureReadyListener listener) {
+        if (listener == null) {
+            return;
+        }
+        // This is a oneshot listener
+        // should clear it once take picture finished.
+        // also need to prevent overriding: second listener would clear first one.
+        // I hate field stateful listener.
+        mPictureReadyListener = listener;
+        // lock the focus first
+        try {
+            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class CompareSizeByAreas implements Comparator<Size> {
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() - (long) rhs.getWidth() * rhs.getHeight());
+        }
+    }
+
+    interface PictureReadyListener {
+        void onPictureReady(byte[] jpeg);
     }
 }
