@@ -56,8 +56,10 @@ public class EosCameraActivity extends Activity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume ");
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.CAMERA}, REQ_PERMISSION);
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQ_PERMISSION);
             return;
         } else {
             mCameraBusiness.onResume();
@@ -82,8 +84,10 @@ public class EosCameraActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Log.d(TAG, "onRequestPermissionsResult requestCode = " + requestCode + " permissions " + permissions + ", results " + grantResults);
         if (requestCode == REQ_PERMISSION) {
-            if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Cannot work without camera", Toast.LENGTH_LONG).show();
+            if (grantResults.length != 2 ||
+                    grantResults[0] != PackageManager.PERMISSION_GRANTED ||
+                    grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Cannot work without camera and storage permissions", Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
