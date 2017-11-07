@@ -419,6 +419,10 @@ public class CameraAgent {
         if (listener == null) {
             return;
         }
+        if (mPictureReadyListener != null) {
+            // Handle one request at a time
+            return;
+        }
         // This is a oneshot listener
         // should clear it once take picture finished.
         // also need to prevent overriding: second listener would clear first one.
