@@ -335,10 +335,10 @@ public class CameraAgent {
     }
 
     private void runPrecaptureSequence() {
-        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
         try {
             mCameraState = CameraState.WAITING_PRECAPTURE;
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
             mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -429,9 +429,9 @@ public class CameraAgent {
     }
 
     private void lockFocus() {
-        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
         try {
             mCameraState = CameraState.WAITING_FOCUS_LOCK;
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
             mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -439,9 +439,9 @@ public class CameraAgent {
     }
 
     private void unlockFocus() {
-        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
         try {
             mCameraState = CameraState.PREVIEW;
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             mSession.capture(mPreviewRequestBuilder.build(), null, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
