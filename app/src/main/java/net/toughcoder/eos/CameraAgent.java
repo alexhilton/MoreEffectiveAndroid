@@ -397,6 +397,10 @@ public class CameraAgent {
     }
 
     public void closeCamera() {
+        if (mImageReader != null) {
+            mImageReader.close();
+            mImageReader = null;
+        }
         if (mSession != null) {
             mSession.close();
             mSession = null;
