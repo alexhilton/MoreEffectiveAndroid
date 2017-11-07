@@ -11,6 +11,7 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
@@ -44,6 +45,7 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.M)
 public class CameraAgent {
     private static final String TAG = "CameraAgent";
+    private static final boolean sDEBUG = true;
     private static final int MSG_START_PREVIEW = 0x100;
 
     private final CameraManager mCameraManager;
@@ -73,6 +75,8 @@ public class CameraAgent {
             mPictureReadyListener = null;
         }
     };
+
+    private CameraState mCameraState;
 
     private static final String CAMERA = "0";
     private CameraCaptureSession mSession;
@@ -198,6 +202,7 @@ public class CameraAgent {
         @Override
         public void onConfigured(@NonNull CameraCaptureSession session) {
             Log.d(TAG, "session callback onConfigure session + " + session);
+            mCameraState = CameraState.PREVIEW;
             mSession = session;
             try {
                 mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mCameraHandler);
@@ -221,23 +226,68 @@ public class CameraAgent {
         @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
             Log.d(TAG, "onCaptureProgressed request " + request);
+            processCaptureResult(partialResult);
         }
 
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            captureStillPicture(result);
+            Log.d(TAG, "onCaptureCompleted");
+            processCaptureResult(result);
         }
 
         @Override
         public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
             Log.d(TAG, "onCaptureFailed failure->" + failure);
+            unlockFocus();
         }
     };
 
-    private void captureStillPicture(TotalCaptureResult result) {
-        final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-        Log.d(TAG, "captureStillPicture result =" + result + ", afstate -> " + afState);
-        doCapture();
+    private void processCaptureResult(CaptureResult result) {
+        if (sDEBUG) {
+            final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+            final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+            Log.d(TAG, "processCaptureResult, state-> " + mCameraState + ", AF " + afState + " AE " + aeState);
+        }
+        switch (mCameraState) {
+            case PREVIEW:
+                break;
+            case WAITING_FOCUS_LOCK: {
+                final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                if (afState == null) {
+                    doCapture();
+                } else if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                        afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
+                    // check ae state
+                    final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null ||
+                            aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                        mCameraState = CameraState.PICTURE_TAKEN;
+                        doCapture();
+                    } else {
+                        runPrecaptureSequence();
+                    }
+                }
+                break;
+            }
+            case WAITING_PRECAPTURE: {
+                final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                if (aeState == null ||
+                        aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
+                        aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
+                    mCameraState = CameraState.WAITING_NON_PRECAPTURE;
+                }
+                break;
+            }
+            case WAITING_NON_PRECAPTURE: {
+                final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                if (aeState == null ||
+                        aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+                    mCameraState = CameraState.PICTURE_TAKEN;
+                    doCapture();
+                }
+                break;
+            }
+        }
     }
 
     private void doCapture() {
@@ -251,8 +301,14 @@ public class CameraAgent {
             final WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
             final int rotation = wm.getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
-//            mSession.stopRepeating();
-            mSession.capture(captureBuilder.build(), null, null);
+
+            CameraCaptureSession.CaptureCallback callback = new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                    unlockFocus();
+                }
+            };
+            mSession.capture(captureBuilder.build(), callback, mCameraHandler);
         } catch (CameraAccessException e) {
         }
     }
@@ -276,6 +332,17 @@ public class CameraAgent {
         // Assume sensor orientation is 90
         final int sensorOrientation = 90;
         return (orientation + sensorOrientation + 270) % 360;
+    }
+
+    private void runPrecaptureSequence() {
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+        try {
+            mCameraState = CameraState.WAITING_PRECAPTURE;
+            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     public CameraAgent(Context context) {
@@ -358,8 +425,24 @@ public class CameraAgent {
         // I hate field stateful listener.
         mPictureReadyListener = listener;
         // lock the focus first
+        lockFocus();
+    }
+
+    private void lockFocus() {
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
         try {
+            mCameraState = CameraState.WAITING_FOCUS_LOCK;
             mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void unlockFocus() {
+        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+        try {
+            mCameraState = CameraState.PREVIEW;
+            mSession.capture(mPreviewRequestBuilder.build(), null, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -374,5 +457,13 @@ public class CameraAgent {
 
     interface PictureReadyListener {
         void onPictureReady(byte[] jpeg);
+    }
+
+    private enum CameraState {
+        PREVIEW,
+        WAITING_FOCUS_LOCK,
+        WAITING_PRECAPTURE,
+        WAITING_NON_PRECAPTURE,
+        PICTURE_TAKEN,
     }
 }
