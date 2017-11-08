@@ -78,6 +78,8 @@ public class CameraAgent {
 
     private CameraState mCameraState;
 
+    private EosCameraBusiness.FlashMode mFlashMode = EosCameraBusiness.FlashMode.OFF;
+
     private static final String CAMERA = "0";
     private CameraCaptureSession mSession;
     private CaptureRequest.Builder mPreviewRequestBuilder;
@@ -122,11 +124,8 @@ public class CameraAgent {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-        mPreviewRequestBuilder.addTarget(targetSurface);
-        try {
+            applyFlashMode();
+            mPreviewRequestBuilder.addTarget(targetSurface);
             mCameraDevice.createCaptureSession(target, mSessionCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -296,6 +295,7 @@ public class CameraAgent {
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mImageReader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            applyFlashModeForCapture(captureBuilder);
 
             // Orientation
             final WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
@@ -450,9 +450,85 @@ public class CameraAgent {
         try {
             mCameraState = CameraState.PREVIEW;
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            applyFlashMode();
             mSession.capture(mPreviewRequestBuilder.build(), null, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
+        }
+    }
+
+    // TODO: validate the mode to protect ourselves from crashing.
+    public void setFlashMode(EosCameraBusiness.FlashMode mode) {
+        mFlashMode = mode;
+        try {
+            applyFlashMode();
+            mSession.capture(mPreviewRequestBuilder.build(), null, null);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void applyFlashMode() {
+        switch (mFlashMode) {
+            case OFF:
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON);
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF);
+                break;
+            case ON:
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF);
+                break;
+            case TORCH:
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON);
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_TORCH);
+                break;
+            case AUTO:
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF);
+                break;
+            case RED_EYE:
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE);
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF);
+                break;
+        }
+    }
+
+    private void applyFlashModeForCapture(CaptureRequest.Builder builder) {
+        switch (mFlashMode) {
+            case OFF:
+                builder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON);
+                builder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_OFF);
+                break;
+            case ON:
+                builder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
+                break;
+            case TORCH:
+                builder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON);
+                builder.set(CaptureRequest.FLASH_MODE,
+                        CaptureRequest.FLASH_MODE_TORCH);
+                break;
+            case AUTO:
+                builder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                break;
+            case RED_EYE:
+                builder.set(CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                break;
         }
     }
 

@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import net.toughcoder.effectiveandroid.R;
@@ -105,7 +106,7 @@ public class EosCameraActivity extends Activity {
         mCameraBusiness.takePicture();
     }
 
-    public void onFlashToggle(View view) {
+    public void onFlashToggle(final View view) {
         // show a radio dialog
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -116,16 +117,22 @@ public class EosCameraActivity extends Activity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 EosCameraBusiness.FlashMode newMode;
+                String modeLabel;
                 if (checkedId == R.id.eos_flash_off) {
                     newMode = EosCameraBusiness.FlashMode.OFF;
+                    modeLabel = "Off";
                 } else if (checkedId == R.id.eos_flash_auto) {
                     newMode = EosCameraBusiness.FlashMode.AUTO;
+                    modeLabel = "Auto";
                 } else if (checkedId == R.id.eos_flash_on) {
                     newMode = EosCameraBusiness.FlashMode.ON;
+                    modeLabel = "On";
                 } else {
                     newMode = EosCameraBusiness.FlashMode.TORCH;
+                    modeLabel = "Torch";
                 }
                 mCameraBusiness.setFlashMode(newMode);
+                ((TextView) view).setText(modeLabel);
             }
         });
     }

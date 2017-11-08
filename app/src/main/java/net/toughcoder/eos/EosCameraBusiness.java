@@ -100,7 +100,11 @@ public class EosCameraBusiness implements TargetReadyListener {
     }
 
     public void setFlashMode(FlashMode mode) {
-        //
+        if (mFlashMode == mode) {
+            return;
+        }
+        mFlashMode = mode;
+        mCameraAgent.setFlashMode(mode);
     }
 
     public enum FlashMode {
@@ -108,5 +112,6 @@ public class EosCameraBusiness implements TargetReadyListener {
         AUTO,
         ON,
         TORCH,
+        RED_EYE,
     }
 }
