@@ -291,6 +291,7 @@ public class CameraAgent {
 
     private void doCapture() {
         try {
+            Log.d(TAG, "doCapture flashMode -> " + mFlashMode);
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mImageReader.getSurface());

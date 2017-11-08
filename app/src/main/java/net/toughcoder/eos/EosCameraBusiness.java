@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -20,6 +21,7 @@ import java.util.Date;
 
 @RequiresApi(Build.VERSION_CODES.M)
 public class EosCameraBusiness implements TargetReadyListener {
+    private static final String TAG = "CameraBusiness";
     private final CameraAgent mCameraAgent;
     private final Context mContext;
     private EosCameraView mPreview;
@@ -72,6 +74,7 @@ public class EosCameraBusiness implements TargetReadyListener {
                 if (out.exists()) {
                     out.delete();
                 }
+                Log.d(TAG, "onPictureTaken file -> " + filename);
                 saveImage(jpeg, out);
             }
         });
