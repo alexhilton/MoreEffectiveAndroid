@@ -22,4 +22,16 @@
         android:clickable="true"
         android:background="@drawable/eos_shutter_bg"
         android:onClick="onTakePicture"/>
+
+    <TextView
+        android:id="@+id/eos_flash"
+        android:layout_width="40dip"
+        android:layout_height="40dip"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:gravity="center"
+        android:background="#aa323232"
+        android:text="Off"
+        android:textSize="18dip"
+        android:textColor="@android:color/white"/>
 </RelativeLayout>
