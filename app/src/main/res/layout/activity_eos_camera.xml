@@ -25,7 +25,7 @@
 
     <TextView
         android:id="@+id/eos_flash"
-        android:layout_width="40dip"
+        android:layout_width="80dip"
         android:layout_height="40dip"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
