@@ -95,4 +95,15 @@ public class EosCameraBusiness implements TargetReadyListener {
     public void onTargetReady(int targetWidth, int targetHeight) {
         mCameraAgent.startPreview(targetWidth, targetHeight);
     }
+
+    public void setFlashMode(FlashMode mode) {
+        //
+    }
+
+    public enum FlashMode {
+        Off,
+        Auto,
+        On,
+        Torch,
+    }
 }

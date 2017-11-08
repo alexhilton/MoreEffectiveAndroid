@@ -5,9 +5,11 @@
               android:padding="20dip"
               android:orientation="vertical">
     <RadioGroup
+        android:id="@+id/eos_flash_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <RadioButton
+            android:id="@+id/eos_flash_off"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Flash off"
@@ -15,18 +17,21 @@
             android:checked="true"
             android:textSize="18dip"/>
         <RadioButton
+            android:id="@+id/eos_flash_auto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Flash auto"
             android:textColor="@android:color/white"
             android:textSize="18dip"/>
         <RadioButton
+            android:id="@+id/eos_flash_on"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Flash on"
             android:textColor="@android:color/white"
             android:textSize="18dip"/>
         <RadioButton
+            android:id="@+id/eos_flash_torch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Flash torch"

@@ -13,6 +13,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import net.toughcoder.effectiveandroid.R;
@@ -110,5 +111,22 @@ public class EosCameraActivity extends Activity {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.eos_list_option);
         dialog.show();
+        final RadioGroup list = (RadioGroup) dialog.findViewById(R.id.eos_flash_list);
+        list.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                EosCameraBusiness.FlashMode newMode;
+                if (checkedId == R.id.eos_flash_off) {
+                    newMode = EosCameraBusiness.FlashMode.Off;
+                } else if (checkedId == R.id.eos_flash_auto) {
+                    newMode = EosCameraBusiness.FlashMode.Auto;
+                } else if (checkedId == R.id.eos_flash_on) {
+                    newMode = EosCameraBusiness.FlashMode.On;
+                } else {
+                    newMode = EosCameraBusiness.FlashMode.Torch;
+                }
+                mCameraBusiness.setFlashMode(newMode);
+            }
+        });
     }
 }
