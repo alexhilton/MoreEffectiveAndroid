@@ -13,6 +13,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -135,5 +136,23 @@ public class EosCameraActivity extends Activity {
                 ((TextView) view).setText(modeLabel);
             }
         });
+        int id = R.id.eos_flash_off;
+        final EosCameraBusiness.FlashMode mode = mCameraBusiness.getFlashMode();
+        switch (mode) {
+            case OFF:
+               id = R.id.eos_flash_off;
+               break;
+            case ON:
+                id = R.id.eos_flash_on;
+                break;
+            case AUTO:
+                id = R.id.eos_flash_auto;
+                break;
+            case TORCH:
+                id = R.id.eos_flash_torch;
+                break;
+        }
+        final RadioButton button = (RadioButton) dialog.findViewById(id);
+        button.setChecked(true);
     }
 }
