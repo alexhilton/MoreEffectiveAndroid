@@ -33,5 +33,6 @@
         android:background="#aa323232"
         android:text="Off"
         android:textSize="18dip"
-        android:textColor="@android:color/white"/>
+        android:textColor="@android:color/white"
+        android:onClick="onFlashToggle"/>
 </RelativeLayout>

@@ -2,6 +2,7 @@ package net.toughcoder.eos;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import net.toughcoder.effectiveandroid.R;
@@ -100,5 +102,13 @@ public class EosCameraActivity extends Activity {
     public void onTakePicture(View view) {
         Log.d(TAG, "onTakePicture");
         mCameraBusiness.takePicture();
+    }
+
+    public void onFlashToggle(View view) {
+        // show a radio dialog
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.eos_list_option);
+        dialog.show();
     }
 }
