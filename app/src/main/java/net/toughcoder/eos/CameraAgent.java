@@ -204,7 +204,9 @@ public class CameraAgent {
             mCameraState = CameraState.PREVIEW;
             mSession = session;
             try {
-                mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mCameraHandler);
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
@@ -218,19 +220,12 @@ public class CameraAgent {
 
     private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
-        public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-            Log.d(TAG, "onCaptureStarted");
-        }
-
-        @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-            Log.d(TAG, "onCaptureProgressed request " + request);
             processCaptureResult(partialResult);
         }
 
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            Log.d(TAG, "onCaptureCompleted");
             processCaptureResult(result);
         }
 
@@ -242,22 +237,19 @@ public class CameraAgent {
     };
 
     private void processCaptureResult(CaptureResult result) {
-        if (sDEBUG) {
-            final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-            final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-            Log.d(TAG, "processCaptureResult, state-> " + mCameraState + ", AF " + afState + " AE " + aeState);
-        }
         switch (mCameraState) {
             case PREVIEW:
                 break;
             case WAITING_FOCUS_LOCK: {
                 final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                Log.d(TAG, "processCaptureResult, state -> " + mCameraState + ", AF -> " + afState);
                 if (afState == null) {
                     doCapture();
                 } else if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
                         afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
                     // check ae state
                     final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    Log.d(TAG, "processCaptureResult, AE-> " + aeState);
                     if (aeState == null ||
                             aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                         mCameraState = CameraState.PICTURE_TAKEN;
@@ -270,6 +262,7 @@ public class CameraAgent {
             }
             case WAITING_PRECAPTURE: {
                 final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                Log.d(TAG, "processCaptureResult state ->" + mCameraState + ", AE -> " + aeState);
                 if (aeState == null ||
                         aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
                         aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
@@ -279,6 +272,7 @@ public class CameraAgent {
             }
             case WAITING_NON_PRECAPTURE: {
                 final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                Log.d(TAG, "processCaptureResult state -> " + mCameraState + ", AE -> " + aeState);
                 if (aeState == null ||
                         aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                     mCameraState = CameraState.PICTURE_TAKEN;
@@ -452,7 +446,7 @@ public class CameraAgent {
             mCameraState = CameraState.PREVIEW;
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             applyFlashMode();
-            mSession.capture(mPreviewRequestBuilder.build(), null, null);
+            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -463,7 +457,7 @@ public class CameraAgent {
         mFlashMode = mode;
         try {
             applyFlashMode();
-            mSession.capture(mPreviewRequestBuilder.build(), null, null);
+            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -515,6 +509,7 @@ public class CameraAgent {
             case ON:
                 builder.set(CaptureRequest.CONTROL_AE_MODE,
                         CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
+                builder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_SINGLE);
                 break;
             case TORCH:
                 builder.set(CaptureRequest.CONTROL_AE_MODE,
