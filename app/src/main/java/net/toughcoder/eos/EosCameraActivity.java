@@ -117,13 +117,13 @@ public class EosCameraActivity extends Activity {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 EosCameraBusiness.FlashMode newMode;
                 if (checkedId == R.id.eos_flash_off) {
-                    newMode = EosCameraBusiness.FlashMode.Off;
+                    newMode = EosCameraBusiness.FlashMode.OFF;
                 } else if (checkedId == R.id.eos_flash_auto) {
-                    newMode = EosCameraBusiness.FlashMode.Auto;
+                    newMode = EosCameraBusiness.FlashMode.AUTO;
                 } else if (checkedId == R.id.eos_flash_on) {
-                    newMode = EosCameraBusiness.FlashMode.On;
+                    newMode = EosCameraBusiness.FlashMode.ON;
                 } else {
-                    newMode = EosCameraBusiness.FlashMode.Torch;
+                    newMode = EosCameraBusiness.FlashMode.TORCH;
                 }
                 mCameraBusiness.setFlashMode(newMode);
             }

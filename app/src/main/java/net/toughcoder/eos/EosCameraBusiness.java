@@ -24,6 +24,9 @@ public class EosCameraBusiness implements TargetReadyListener {
     private final Context mContext;
     private EosCameraView mPreview;
 
+    // Camera Parameters
+    private FlashMode mFlashMode = FlashMode.OFF;
+
     public EosCameraBusiness(Context context) {
         mContext = context;
         mCameraAgent = new CameraAgent(context);
@@ -101,9 +104,9 @@ public class EosCameraBusiness implements TargetReadyListener {
     }
 
     public enum FlashMode {
-        Off,
-        Auto,
-        On,
-        Torch,
+        OFF,
+        AUTO,
+        ON,
+        TORCH,
     }
 }
