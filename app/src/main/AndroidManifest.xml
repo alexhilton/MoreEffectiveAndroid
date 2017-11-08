@@ -126,6 +126,7 @@
         </activity>
         <activity android:name="net.toughcoder.eos.EosCameraActivity"
                   android:launchMode="singleTop"
+                  android:screenOrientation="portrait"
                   android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
         </activity>
     </application>
