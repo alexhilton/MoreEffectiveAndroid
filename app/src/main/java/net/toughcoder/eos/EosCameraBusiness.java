@@ -81,6 +81,7 @@ public class EosCameraBusiness implements TargetReadyListener {
                 }
                 Log.d(TAG, "onPictureTaken file -> " + filename);
                 saveImage(jpeg, out);
+                notifyPictureListeners(out.getAbsolutePath());
             }
         });
     }
@@ -99,6 +100,12 @@ public class EosCameraBusiness implements TargetReadyListener {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void notifyPictureListeners(String filename) {
+        for (NewPictureListener listener : mPictureListeners) {
+            listener.onNewPicture(filename);
         }
     }
 
