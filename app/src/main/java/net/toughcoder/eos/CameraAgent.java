@@ -442,6 +442,8 @@ public class CameraAgent {
         try {
             mCameraState = CameraState.PREVIEW;
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             applyFlashMode();
             mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
