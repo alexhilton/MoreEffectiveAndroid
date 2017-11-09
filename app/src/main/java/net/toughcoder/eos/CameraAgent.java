@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -86,6 +87,7 @@ public class CameraAgent {
     private String mCurrentDeviceId;
     private Map<EosCameraBusiness.CameraFacing, String> mDeviceTable;
     private CameraCharacteristics mCharacterists;
+    private Size mTargetDimension;
 
     private CameraCaptureSession mSession;
     private CaptureRequest.Builder mPreviewRequestBuilder;
@@ -346,6 +348,7 @@ public class CameraAgent {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+        mTargetDimension = new Size(0, 0);
     }
 
     // Query general info about camera:
@@ -431,6 +434,7 @@ public class CameraAgent {
     }
 
     public void startPreview(int targetWidth, int targetHeight) {
+        mTargetDimension = new Size(targetWidth, targetHeight);
         if (mSession == null) {
             Message msg = Message.obtain();
             msg.what = MSG_START_PREVIEW;
@@ -558,6 +562,21 @@ public class CameraAgent {
                         CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
                 break;
         }
+    }
+
+    public boolean supportCameraSwitch() {
+        return mDeviceTable.size() > 1;
+    }
+
+    public void switchCamera(EosCameraBusiness.CameraFacing requestedFacing) {
+        final String requestedDevice = mDeviceTable.get(requestedFacing);
+        if (TextUtils.equals(requestedDevice, mCurrentDeviceId)) {
+            return;
+        }
+        mCurrentDeviceId = requestedDevice;
+        closeCamera();
+        openCamera();
+        startPreview(mTargetDimension.getWidth(), mTargetDimension.getHeight());
     }
 
     static class CompareSizeByAreas implements Comparator<Size> {

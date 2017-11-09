@@ -138,8 +138,11 @@ public class EosCameraBusiness implements TargetReadyListener {
     }
 
     public void switchCamera() {
+        if (!mCameraAgent.supportCameraSwitch()) {
+            return;
+        }
         final CameraFacing newFacing = mFacing == CameraFacing.FRONT ? CameraFacing.REAR : CameraFacing.FRONT;
-        // call mcamera agaent
+        mCameraAgent.switchCamera(newFacing);
         mFacing = newFacing;
     }
 
