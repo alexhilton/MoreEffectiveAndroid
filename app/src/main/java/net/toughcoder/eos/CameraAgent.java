@@ -12,7 +12,6 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -206,6 +205,7 @@ public class CameraAgent {
             try {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                applyFlashMode();
                 mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -228,54 +228,49 @@ public class CameraAgent {
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
             processCaptureResult(result);
         }
-
-        @Override
-        public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-            Log.d(TAG, "onCaptureFailed failure->" + failure);
-            unlockFocus();
-        }
     };
 
     private void processCaptureResult(CaptureResult result) {
         switch (mCameraState) {
-            case PREVIEW:
-                break;
-            case WAITING_FOCUS_LOCK: {
+            case FOCUS_LOCKING: {
                 final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
                 Log.d(TAG, "processCaptureResult, state -> " + mCameraState + ", AF -> " + afState);
                 if (afState == null) {
-                    doCapture();
-                } else if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                    break;
+                }
+                if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
                         afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
                     // check ae state
                     final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     Log.d(TAG, "processCaptureResult, AE-> " + aeState);
                     if (aeState == null ||
                             aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                        mCameraState = CameraState.PICTURE_TAKEN;
+                        mCameraState = CameraState.CAPTURING;
                         doCapture();
                     } else {
+                        mCameraState = CameraState.FOCUS_LOCKED;
                         runPrecaptureSequence();
                     }
                 }
                 break;
             }
-            case WAITING_PRECAPTURE: {
+            case REQUIRE_PRECAPTURE: {
                 final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                 Log.d(TAG, "processCaptureResult state ->" + mCameraState + ", AE -> " + aeState);
                 if (aeState == null ||
                         aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
-                        aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED) {
-                    mCameraState = CameraState.WAITING_NON_PRECAPTURE;
+                        aeState == CaptureResult.CONTROL_AE_STATE_FLASH_REQUIRED ||
+                        aeState == CaptureRequest.CONTROL_AE_STATE_CONVERGED) {
+                    mCameraState = CameraState.WAITING_PRECAPTURE;
                 }
                 break;
             }
-            case WAITING_NON_PRECAPTURE: {
+            case WAITING_PRECAPTURE: {
                 final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                 Log.d(TAG, "processCaptureResult state -> " + mCameraState + ", AE -> " + aeState);
                 if (aeState == null ||
                         aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                    mCameraState = CameraState.PICTURE_TAKEN;
+                    mCameraState = CameraState.CAPTURING;
                     doCapture();
                 }
                 break;
@@ -331,10 +326,12 @@ public class CameraAgent {
 
     private void runPrecaptureSequence() {
         try {
-            mCameraState = CameraState.WAITING_PRECAPTURE;
+            mCameraState = CameraState.REQUIRE_PRECAPTURE;
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
             mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_IDLE);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -433,7 +430,7 @@ public class CameraAgent {
 
     private void lockFocus() {
         try {
-            mCameraState = CameraState.WAITING_FOCUS_LOCK;
+            mCameraState = CameraState.FOCUS_LOCKING;
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
             mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
@@ -508,8 +505,8 @@ public class CameraAgent {
                 break;
             case ON:
                 builder.set(CaptureRequest.CONTROL_AE_MODE,
-                        CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
-                builder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_SINGLE);
+                        CaptureRequest.CONTROL_AE_MODE_ON);
+                builder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
                 break;
             case TORCH:
                 builder.set(CaptureRequest.CONTROL_AE_MODE,
@@ -541,9 +538,10 @@ public class CameraAgent {
 
     private enum CameraState {
         PREVIEW,
-        WAITING_FOCUS_LOCK,
+        FOCUS_LOCKING,
+        FOCUS_LOCKED,
+        REQUIRE_PRECAPTURE,
         WAITING_PRECAPTURE,
-        WAITING_NON_PRECAPTURE,
-        PICTURE_TAKEN,
+        CAPTURING,
     }
 }
