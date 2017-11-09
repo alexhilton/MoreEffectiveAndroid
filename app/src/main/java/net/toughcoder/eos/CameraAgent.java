@@ -140,7 +140,6 @@ public class CameraAgent {
         }
     }
 
-    // TODO: Requiring check access exception is a stupid design, devise a way to remove it.
     private void configCaptureTarget() {
         // Select largest picture size
         StreamConfigurationMap scmap = mCharacterists.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
