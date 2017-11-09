@@ -30,6 +30,7 @@ public class EosCameraBusiness implements TargetReadyListener {
 
     // Camera Parameters
     private FlashMode mFlashMode = FlashMode.OFF;
+    private CameraFacing mFacing = CameraFacing.REAR;
 
     private List<NewPictureListener> mPictureListeners;
 
@@ -136,12 +137,27 @@ public class EosCameraBusiness implements TargetReadyListener {
         mPictureListeners.remove(listener);
     }
 
+    public void switchCamera() {
+        final CameraFacing newFacing = mFacing == CameraFacing.FRONT ? CameraFacing.REAR : CameraFacing.FRONT;
+        // call mcamera agaent
+        mFacing = newFacing;
+    }
+
+    public CameraFacing getCameraFacing() {
+        return mFacing;
+    }
+
     public enum FlashMode {
         OFF,
         AUTO,
         ON,
         TORCH,
         RED_EYE,
+    }
+
+    public enum CameraFacing {
+        FRONT,
+        REAR,
     }
 
     public interface NewPictureListener {

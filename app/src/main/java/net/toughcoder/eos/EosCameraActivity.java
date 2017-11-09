@@ -178,7 +178,10 @@ public class EosCameraActivity extends Activity
     }
 
     public void onSwitchCamera(final View view) {
-        //
+        mCameraBusiness.switchCamera();
+        EosCameraBusiness.CameraFacing newFacing = mCameraBusiness.getCameraFacing();
+        final String label = newFacing == EosCameraBusiness.CameraFacing.FRONT ? "Rear" : "Front";
+        ((TextView) view).setText(label);
     }
 
     @Override
