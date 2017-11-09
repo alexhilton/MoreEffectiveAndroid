@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by alex on 17-11-3.
@@ -79,7 +81,12 @@ public class CameraAgent {
 
     private EosCameraBusiness.FlashMode mFlashMode = EosCameraBusiness.FlashMode.OFF;
 
-    private static final String CAMERA = "0";
+    // Camera general info
+    private int mNumberOfDevices;
+    private String mCurrentDeviceId;
+    private Map<EosCameraBusiness.CameraFacing, String> mDeviceTable;
+    private CameraCharacteristics mCharacterists;
+
     private CameraCaptureSession mSession;
     private CaptureRequest.Builder mPreviewRequestBuilder;
     private CameraDevice.StateCallback mSetupCallback = new CameraDevice.StateCallback() {
@@ -134,51 +141,42 @@ public class CameraAgent {
     // TODO: Requiring check access exception is a stupid design, devise a way to remove it.
     private void configCaptureTarget() {
         // Select largest picture size
-        try {
-            CameraCharacteristics cc = mCameraManager.getCameraCharacteristics(CAMERA);
-            StreamConfigurationMap scmap = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            Size largest =
-                    Collections.max(Arrays.asList(scmap.getOutputSizes(ImageFormat.JPEG)), new CompareSizeByAreas());
-            Log.d(TAG, "configCaptureTarget size w -> " + largest.getWidth() + ", h -> " + largest.getHeight());
-            if (mImageReader == null) {
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, 1);
-                mImageReader.setOnImageAvailableListener(mImageAvailableListener, mCameraHandler);
-            }
-        } catch (CameraAccessException e) {
+        StreamConfigurationMap scmap = mCharacterists.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        Size largest =
+                Collections.max(Arrays.asList(scmap.getOutputSizes(ImageFormat.JPEG)), new CompareSizeByAreas());
+        Log.d(TAG, "configCaptureTarget size w -> " + largest.getWidth() + ", h -> " + largest.getHeight());
+        if (mImageReader == null) {
+            mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
+                    ImageFormat.JPEG, 1);
+            mImageReader.setOnImageAvailableListener(mImageAvailableListener, mCameraHandler);
         }
     }
 
     private void configPreviewSize(int targetWidth, int targetHeight) {
-        try {
-            CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(CAMERA);
-            StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        StreamConfigurationMap configMap = mCharacterists.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
-            // Find out whether need to swap dimensions
-            final WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-            final int displayRotation = windowManager.getDefaultDisplay().getRotation();
-            final int sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-            boolean needSwap = false;
-            switch (displayRotation) {
-                case Surface.ROTATION_0:
-                case Surface.ROTATION_180:
-                    needSwap = sensorOrientation == 90 || sensorOrientation == 270;
-                    break;
-                case Surface.ROTATION_90:
-                case Surface.ROTATION_270:
-                    needSwap = sensorOrientation == 0 || sensorOrientation == 180;
-                    break;
-                default:
-                    Log.d(TAG, "Invalid display rotation, something is really wrong.");
-            }
-            final int rotatedWidth = needSwap ? targetHeight : targetWidth;
-            final int rotatedHeight = needSwap ? targetWidth : targetHeight;
-            final Size bestPreviewSize = chooseOptimalPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), rotatedWidth, rotatedHeight);
-            Log.d(TAG, "preview size w -> " + bestPreviewSize.getWidth() + ", height -> " + bestPreviewSize.getHeight());
-            configRenderers(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
+        // Find out whether need to swap dimensions
+        final WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        final int displayRotation = windowManager.getDefaultDisplay().getRotation();
+        final int sensorOrientation = mCharacterists.get(CameraCharacteristics.SENSOR_ORIENTATION);
+        boolean needSwap = false;
+        switch (displayRotation) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                needSwap = sensorOrientation == 90 || sensorOrientation == 270;
+                break;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+                needSwap = sensorOrientation == 0 || sensorOrientation == 180;
+                break;
+            default:
+                Log.d(TAG, "Invalid display rotation, something is really wrong.");
         }
+        final int rotatedWidth = needSwap ? targetHeight : targetWidth;
+        final int rotatedHeight = needSwap ? targetWidth : targetHeight;
+        final Size bestPreviewSize = chooseOptimalPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), rotatedWidth, rotatedHeight);
+        Log.d(TAG, "preview size w -> " + bestPreviewSize.getWidth() + ", height -> " + bestPreviewSize.getHeight());
+        configRenderers(bestPreviewSize.getWidth(), bestPreviewSize.getHeight());
     }
 
     private void configRenderers(int width, int height) {
@@ -341,6 +339,35 @@ public class CameraAgent {
     public CameraAgent(Context context) {
         mContext = context;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        queryCameraInfo();
+        mCurrentDeviceId = mDeviceTable.get(EosCameraBusiness.CameraFacing.REAR);
+        try {
+            mCharacterists = mCameraManager.getCameraCharacteristics(mCurrentDeviceId);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Query general info about camera:
+    // number of camera sensors
+    // camera id associated with facing.
+    private void queryCameraInfo() {
+        try {
+            mNumberOfDevices = mCameraManager.getCameraIdList().length;
+            final String[] idList = mCameraManager.getCameraIdList();
+            mDeviceTable = new HashMap<>();
+            for (String id : idList) {
+                CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(id);
+                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                if (facing == CameraCharacteristics.LENS_FACING_BACK) {
+                    mDeviceTable.put(EosCameraBusiness.CameraFacing.REAR, id);
+                } else if (facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                    mDeviceTable.put(EosCameraBusiness.CameraFacing.FRONT, id);
+                }
+            }
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setTarget(Targetable target) {
@@ -382,7 +409,7 @@ public class CameraAgent {
             return;
         } else {
             try {
-                mCameraManager.openCamera(CAMERA, mSetupCallback, mCameraHandler);
+                mCameraManager.openCamera(mCurrentDeviceId, mSetupCallback, mCameraHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
