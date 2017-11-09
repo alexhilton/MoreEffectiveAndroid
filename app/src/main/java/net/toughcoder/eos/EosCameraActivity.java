@@ -177,6 +177,10 @@ public class EosCameraActivity extends Activity
         button.setChecked(true);
     }
 
+    public void onSwitchCamera(final View view) {
+        //
+    }
+
     @Override
     public void onClick(View v) {
         // to review the image.

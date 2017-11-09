@@ -45,4 +45,17 @@
         android:layout_alignParentLeft="true"
         android:layout_marginBottom="20dip"
         android:layout_marginLeft="20dip"/>
+
+    <TextView
+        android:id="@+id/eos_switch"
+        android:layout_width="60dip"
+        android:layout_height="40dip"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:gravity="center"
+        android:text="Front"
+        android:textSize="18dip"
+        android:textColor="@android:color/white"
+        android:background="#aa323232"
+        android:onClick="onSwitchCamera"/>
 </RelativeLayout>
