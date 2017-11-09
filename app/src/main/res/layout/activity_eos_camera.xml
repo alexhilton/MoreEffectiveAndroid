@@ -35,4 +35,14 @@
         android:textSize="18dip"
         android:textColor="@android:color/white"
         android:onClick="onFlashToggle"/>
+
+    <ImageView
+        android:id="@+id/eos_thumbnail"
+        android:layout_width="100dip"
+        android:layout_height="100dip"
+        android:background="#323232"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="20dip"
+        android:layout_marginLeft="20dip"/>
 </RelativeLayout>

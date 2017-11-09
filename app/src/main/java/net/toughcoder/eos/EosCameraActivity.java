@@ -13,6 +13,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -21,7 +22,7 @@ import android.widget.Toast;
 import net.toughcoder.effectiveandroid.R;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class EosCameraActivity extends Activity {
+public class EosCameraActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "EosCamera";
     private static final int REQ_PERMISSION = 0x01;
     private Handler mMainHandler = new Handler() {
@@ -31,6 +32,7 @@ public class EosCameraActivity extends Activity {
         }
     };
 
+    private ImageView mThumbnailView;
     private EosCameraBusiness mCameraBusiness;
 
     @Override
@@ -47,6 +49,8 @@ public class EosCameraActivity extends Activity {
         final EosCameraView cameraView = (EosCameraView) findViewById(R.id.eos_preview);
         mCameraBusiness = new EosCameraBusiness(this);
         mCameraBusiness.setPreviewTarget(cameraView);
+        mThumbnailView = (ImageView) findViewById(R.id.eos_thumbnail);
+        mThumbnailView.setOnClickListener(this);
     }
 
     @Override
@@ -154,5 +158,10 @@ public class EosCameraActivity extends Activity {
         }
         final RadioButton button = (RadioButton) dialog.findViewById(id);
         button.setChecked(true);
+    }
+
+    @Override
+    public void onClick(View v) {
+        // to review the image.
     }
 }
