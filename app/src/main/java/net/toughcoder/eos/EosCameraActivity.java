@@ -22,7 +22,9 @@ import android.widget.Toast;
 import net.toughcoder.effectiveandroid.R;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class EosCameraActivity extends Activity implements View.OnClickListener {
+public class EosCameraActivity extends Activity
+        implements View.OnClickListener,
+        EosCameraBusiness.NewPictureListener {
     private static final String TAG = "EosCamera";
     private static final int REQ_PERMISSION = 0x01;
     private Handler mMainHandler = new Handler() {
@@ -51,6 +53,7 @@ public class EosCameraActivity extends Activity implements View.OnClickListener 
         mCameraBusiness.setPreviewTarget(cameraView);
         mThumbnailView = (ImageView) findViewById(R.id.eos_thumbnail);
         mThumbnailView.setOnClickListener(this);
+        mCameraBusiness.addPictureListener(this);
     }
 
     @Override
@@ -87,6 +90,12 @@ public class EosCameraActivity extends Activity implements View.OnClickListener 
         super.onStop();
         // stop camera thread.
         mCameraBusiness.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mCameraBusiness.removePictureListener(this);
     }
 
     @Override
@@ -163,5 +172,10 @@ public class EosCameraActivity extends Activity implements View.OnClickListener 
     @Override
     public void onClick(View v) {
         // to review the image.
+    }
+
+    @Override
+    public void onNewPicture(String path) {
+        // show the thumbnail
     }
 }

@@ -12,7 +12,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by alex on 17-11-1.
@@ -29,9 +31,12 @@ public class EosCameraBusiness implements TargetReadyListener {
     // Camera Parameters
     private FlashMode mFlashMode = FlashMode.OFF;
 
+    private List<NewPictureListener> mPictureListeners;
+
     public EosCameraBusiness(Context context) {
         mContext = context;
         mCameraAgent = new CameraAgent(context);
+        mPictureListeners = new ArrayList<>();
     }
 
     public void onStart() {
@@ -114,11 +119,25 @@ public class EosCameraBusiness implements TargetReadyListener {
         return mFlashMode;
     }
 
+    public void addPictureListener(NewPictureListener listener) {
+        if (!mPictureListeners.contains(listener)) {
+            mPictureListeners.add(listener);
+        }
+    }
+
+    public void removePictureListener(NewPictureListener listener) {
+        mPictureListeners.remove(listener);
+    }
+
     public enum FlashMode {
         OFF,
         AUTO,
         ON,
         TORCH,
         RED_EYE,
+    }
+
+    public interface NewPictureListener {
+        void onNewPicture(String path);
     }
 }
