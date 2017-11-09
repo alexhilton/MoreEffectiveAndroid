@@ -284,7 +284,7 @@ public class CameraAgent {
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mImageReader.getSurface());
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, mPreviewRequestBuilder.get(CaptureRequest.CONTROL_AF_MODE));
             applyFlashModeForCapture(captureBuilder);
 
             // Orientation
@@ -298,6 +298,7 @@ public class CameraAgent {
                     unlockFocus();
                 }
             };
+            mSession.stopRepeating();
             mSession.capture(captureBuilder.build(), callback, mCameraHandler);
         } catch (CameraAccessException e) {
         }
@@ -440,12 +441,17 @@ public class CameraAgent {
 
     private void unlockFocus() {
         try {
-            mCameraState = CameraState.PREVIEW;
+            // Cancel last CAF
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+
+            applyFlashMode();
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            applyFlashMode();
-            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                    CaptureRequest.CONTROL_AF_TRIGGER_IDLE);
+            mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+            mCameraState = CameraState.PREVIEW;
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -456,7 +462,8 @@ public class CameraAgent {
         mFlashMode = mode;
         try {
             applyFlashMode();
-            mSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
+            mSession.stopRepeating();
+            mSession.setRepeatingRequest(mPreviewRequestBuilder.build(), mCaptureCallback, mCameraHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -507,8 +514,7 @@ public class CameraAgent {
                 break;
             case ON:
                 builder.set(CaptureRequest.CONTROL_AE_MODE,
-                        CaptureRequest.CONTROL_AE_MODE_ON);
-                builder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
+                        CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH);
                 break;
             case TORCH:
                 builder.set(CaptureRequest.CONTROL_AE_MODE,
